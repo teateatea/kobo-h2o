@@ -39,7 +39,7 @@ echo.
 echo  Enter the full path to your Obsidian vault.
 echo  This is the folder that contains your notes (not the .obsidian subfolder).
 echo.
-echo  Example:  C:\Users\solar\Documents\Obsidian JG Sync
+echo  Example:  C:\Users\Name\Documents\Obsidian Vault
 echo.
 set /p "VAULT_INPUT=  Vault path: "
 
