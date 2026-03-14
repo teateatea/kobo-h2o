@@ -2,13 +2,14 @@
 
 ## Project Overview
 
-- **Plugin name:** Kobo Highlights 2 Obsidian
+- **Plugin name:** Kobo H2O
 - **Plugin ID:** `kobo-highlights-2-obsidian`
 - **Description:** Obsidian community plugin that imports highlights from a Kobo e-reader into one note per book. Supports SQLite database, exported text/CSV, and Kobo My Clippings formats.
 - **Version:** 1.0.0 (pre-submission)
 - **Obsidian min version:** 1.11.0
 - **Desktop only:** Yes (uses Node.js `fs` and `path`)
-- **Repository:** https://github.com/kobo-h2o/kobo-highlights-2-obsidian
+- **Author:** teateatea
+- **Repository:** https://github.com/teateatea/kobo-h2o/
 - **Distributable size:** ~720KB (`main.js` 76KB + `sql-wasm.wasm` 644KB + `manifest.json` 0.4KB)
 - **Startup time:** ~7ms (measured in Obsidian 1.12.4 with 16 plugins active)
 
@@ -152,7 +153,7 @@ These touch the same line and should be implemented together.
 
 ## Rebuild Instructions
 
-1. `git clone https://github.com/kobo-h2o/kobo-highlights-2-obsidian`
+1. `git clone https://github.com/teateatea/kobo-h2o`
 2. `cd kobo-highlights-2-obsidian && npm install`
 3. Run `setup.bat` and enter your vault path when prompted
 4. `npm run deploy` to build and install to your vault
