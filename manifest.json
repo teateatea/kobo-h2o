@@ -1,0 +1,10 @@
+{
+  "id": "kobo-highlights-2-obsidian",
+  "name": "Kobo Highlights 2 Obsidian",
+  "version": "1.0.0",
+  "minAppVersion": "1.11.0",
+  "description": "Import highlights from your Kobo e-reader into Obsidian. Supports both SQLite database and exported text/CSV files.",
+  "author": "YOUR_NAME_OR_HANDLE",
+  "authorUrl": "https://github.com/kobo-h2o/kobo-highlights-2-obsidian",
+  "isDesktopOnly": true
+}

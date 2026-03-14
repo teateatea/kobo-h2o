@@ -1,0 +1,141 @@
+// -- Domain types --------------------------------------------------------------
+
+export interface KoboHighlight {
+  text: string;
+  annotation?: string;
+  chapter?: string;
+  dateCreated: string;
+  chapterProgress: number;
+  bookTitle?: string;
+  bookAuthor?: string;
+}
+
+export interface KoboBook {
+  title: string;
+  author?: string;
+  isbn?: string;
+  publisher?: string;
+  language?: string;
+  series?: string;
+  seriesNumber?: string;
+  dateLastRead?: string;
+  percentRead: number;
+  highlightCount: number;
+  annotationCount: number;
+  shelves: string[];
+  highlights: KoboHighlight[];
+}
+
+// -- Settings ------------------------------------------------------------------
+
+export interface KoboImporterSettings {
+  // Output
+  outputFolder: string;
+  minHighlightWords: number;
+  allowOverwrite: boolean;
+  collectionsItemWrapper: string;
+
+  // Format — Card 1: Note name
+  noteTitleTemplate: string;
+  noteTitleInvalidCharReplacement: string;
+
+  // Format — Card 2: Frontmatter
+  frontmatterTemplate: string;
+  frontmatterOmitEmptyLines: boolean;
+  collectionsAsListEnabled: boolean;
+
+  // Format — Card 3: Note heading
+  noteHeadingTemplate: string;
+  noteHeadingOmitEmptyLines: boolean;
+
+  // Format — Card 4: Highlights
+  highlightTemplate: string;
+  highlightOmitEmptyLines: boolean;
+
+  // Format — Card 5: Annotations
+  annotationTemplate: string;
+  annotationOmitEmptyLines: boolean;
+
+  // Format — Card 6: Note footer
+  footerTemplate: string;
+  footerOmitEmptyLines: boolean;
+  footerAppendOnEachImport: boolean;
+
+  // Format — Card 7: Append heading
+  appendHeadingTemplate: string;
+  appendHeadingOmitEmptyLines: boolean;
+}
+
+export const DEFAULT_SETTINGS: KoboImporterSettings = {
+  // Output
+  outputFolder: "Kobo Highlights",
+  minHighlightWords: 0,
+  allowOverwrite: false,
+  collectionsItemWrapper: "",
+
+  // Format — Card 1: Note name
+  noteTitleTemplate: "{{title}} ({{author}})",
+  noteTitleInvalidCharReplacement: " -",
+
+  // Format — Card 2: Frontmatter
+  frontmatterTemplate: [
+    "---",
+    "title: {{title}}",
+    "author: {{author}}",
+    "series: {{series}}",
+    "series_number: {{series_number}}",
+    "last_read: {{date_last_read}}",
+    "percent_read: {{percent_read}}",
+    "highlights: {{highlight_count}}",
+    "annotations: {{annotation_count}}",
+    "isbn: {{isbn}}",
+    "publisher: {{publisher}}",
+    "language: {{language}}",
+    "imported: {{date_imported}}",
+    "collections: {{collections}}",
+    "---",
+  ].join("\n"),
+  frontmatterOmitEmptyLines: true,
+  collectionsAsListEnabled: true,
+
+  // Format — Card 3: Note heading
+  noteHeadingTemplate: [
+    "# {{title}}",
+    "*by {{author}}*",
+    "{{series}}",
+    "",
+    "{{highlight_count}} highlights — imported {{date_imported}}",
+    "",
+    "---",
+    "",
+    "## Highlights",
+  ].join("\n"),
+  noteHeadingOmitEmptyLines: true,
+
+  // Format — Card 4: Highlights
+  highlightTemplate: [
+    "{{chapter}}",
+    "> {{highlight_text}}",
+    "",
+    "— {{author}}, *{{title}}*",
+  ].join("\n"),
+  highlightOmitEmptyLines: true,
+
+  // Format — Card 5: Annotations
+  annotationTemplate: [
+    "*{{annotation_text}}*",
+    "— {{date_annotated}}, in {{title}} ({{author}})",
+  ].join("\n"),
+  annotationOmitEmptyLines: true,
+
+  // Format — Card 6: Note footer
+  footerTemplate: "---",
+  footerOmitEmptyLines: true,
+  footerAppendOnEachImport: false,
+
+  // Format — Card 7: Append heading
+  appendHeadingTemplate: "## Highlights from {{date_imported}}",
+  appendHeadingOmitEmptyLines: true,
+};
+
+
