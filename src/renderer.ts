@@ -1,4 +1,5 @@
 import { KoboBook, KoboHighlight, KoboImporterSettings } from "./types";
+import { preprocessConditionals } from "./template-parser";
 
 // -- Note title / filename -----------------------------------------------------
 
@@ -345,10 +346,12 @@ function applyVarsMultiline(
   vars: Record<string, string>,
   omitEmptyLines: boolean
 ): string {
-  return template
+  const processed = preprocessConditionals(template, vars);
+  return processed
     .split("\n")
     .map((line) => {
       if (omitEmptyLines) {
+        if (line.trim() === "") return null;
         const varTokens = [...line.matchAll(/\{\{([^}]+)\}\}/g)];
         if (varTokens.length > 0) {
           const allEmpty = varTokens.every(([, key]) => (vars[key] ?? "") === "");

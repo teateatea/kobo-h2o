@@ -45,8 +45,9 @@ Persistent cross-session task list. Update status inline: `[ ]` pending, `[x]` d
 
 - [ ] **#3** Investigate highlight time storage in SQLite — check if time-of-day is stored, expose it if so
 - [ ] **#8** Add `{{highlight_start}}` template variable — first X words of highlight (configurable)
-- [ ] **#10** Add conditional template syntax — e.g. `{{condition|text}}` for optional blocks
+- [x] **#10** Add conditional template syntax — e.g. `{{condition|text}}` for optional blocks
 - [ ] **#11** Add template file support — use a `template.md` file instead of inline settings
+- [ ] **#32** Visual bug: unknown variable warning fires on conditional template syntax tokens (e.g. `{{series|1}}`)
 
 ---
 
