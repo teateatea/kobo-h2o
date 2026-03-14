@@ -3,3 +3,7 @@ dist/
 *.js.map
 .DS_Store
 Thumbs.db
+
+# Test data — keep private
+KoboReader.sqlite
+*.sqlite
