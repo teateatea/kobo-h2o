@@ -4,7 +4,7 @@ import { KoboBook, KoboHighlight, KoboImporterSettings } from "./types";
 
 export function renderFilename(book: KoboBook, settings: KoboImporterSettings): string {
   const importDate = isoDate(new Date());
-  const raw = applyVars(settings.noteTitleTemplate, bookVars(book, importDate));
+  const raw = applyVars(settings.noteTitleTemplate, bookVars(book, importDate, importDate, settings));
   const replacement = settings.noteTitleInvalidCharReplacement;
   return raw
     .replace(/[/:*?"<>|\\]/g, replacement)
@@ -15,23 +15,23 @@ export function renderFilename(book: KoboBook, settings: KoboImporterSettings): 
 
 // -- Full book note ------------------------------------------------------------
 
-export function renderBookNote(book: KoboBook, settings: KoboImporterSettings): string {
+export function renderBookNote(book: KoboBook, settings: KoboImporterSettings, createdDate: string): string {
   const importDate = isoDate(new Date());
   const parts: string[] = [];
 
-  const fm = renderFrontmatter(book, settings, importDate);
+  const fm = renderFrontmatter(book, settings, importDate, createdDate);
   if (fm) parts.push(fm);
 
-  const heading = renderNoteHeading(book, settings, importDate);
+  const heading = renderNoteHeading(book, settings, importDate, createdDate);
   if (heading) parts.push(heading);
 
   parts.push("");
 
-  for (const h of book.highlights) {
-    parts.push(renderHighlight(h, book, settings, importDate));
+  for (let i = 0; i < book.highlights.length; i++) {
+    parts.push(renderHighlight(book.highlights[i], book, settings, importDate, i, createdDate));
   }
 
-  const footer = renderFooter(book, settings, importDate);
+  const footer = renderFooter(book, settings, importDate, createdDate);
   if (footer) {
     parts.push("");
     parts.push(footer);
@@ -42,12 +42,12 @@ export function renderBookNote(book: KoboBook, settings: KoboImporterSettings): 
 
 // -- Frontmatter ---------------------------------------------------------------
 
-function renderFrontmatter(book: KoboBook, settings: KoboImporterSettings, importDate: string): string {
+function renderFrontmatter(book: KoboBook, settings: KoboImporterSettings, importDate: string, createdDate: string): string {
   const tmpl = settings.frontmatterTemplate.trim();
   if (!tmpl) return "";
 
   const vars = {
-    ...bookVars(book, importDate, settings),
+    ...bookVars(book, importDate, createdDate, settings),
     percent_read: String(Math.max(0, Math.min(100, Number(book.percentRead) || 0))),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
@@ -75,12 +75,12 @@ function renderFrontmatter(book: KoboBook, settings: KoboImporterSettings, impor
 
 // -- Note heading --------------------------------------------------------------
 
-function renderNoteHeading(book: KoboBook, settings: KoboImporterSettings, importDate: string): string {
+function renderNoteHeading(book: KoboBook, settings: KoboImporterSettings, importDate: string, createdDate: string): string {
   const tmpl = settings.noteHeadingTemplate.trim();
   if (!tmpl) return "";
 
   const vars = {
-    ...bookVars(book, importDate, settings),
+    ...bookVars(book, importDate, createdDate, settings),
     percent_read: String(Math.max(0, Math.min(100, Number(book.percentRead) || 0))),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
@@ -98,16 +98,20 @@ export function renderHighlight(
   h: KoboHighlight,
   book: KoboBook,
   settings: KoboImporterSettings,
-  importDate: string
+  importDate: string,
+  index: number = 0,
+  createdDate?: string
 ): string {
+  const cd = createdDate ?? importDate;
   const vars: Record<string, string> = {
-    ...bookVars(book, importDate, settings),
+    ...bookVars(book, importDate, cd, settings),
     highlight_text: normaliseHighlightText(h.text),
     chapter: h.chapter ?? "",
     date_highlighted: formatDate(h.dateCreated),
     page_percent: h.chapterProgress > 0 ? `${Math.round(h.chapterProgress * 100)}%` : "",
+    highlight_number: String(index + 1),
     annotation: h.annotation
-      ? renderAnnotation(h, book, settings, importDate)
+      ? renderAnnotation(h, book, settings, importDate, cd)
       : "",
   };
 
@@ -124,11 +128,12 @@ function renderAnnotation(
   h: KoboHighlight,
   book: KoboBook,
   settings: KoboImporterSettings,
-  importDate: string
+  importDate: string,
+  createdDate?: string
 ): string {
   if (!h.annotation) return "";
   const vars: Record<string, string> = {
-    ...bookVars(book, importDate, settings),
+    ...bookVars(book, importDate, createdDate ?? importDate, settings),
     annotation_text: h.annotation,
     chapter: h.chapter ?? "",
     date_annotated: formatDate(h.dateCreated),
@@ -139,12 +144,12 @@ function renderAnnotation(
 
 // -- Footer --------------------------------------------------------------------
 
-function renderFooter(book: KoboBook, settings: KoboImporterSettings, importDate: string): string {
+function renderFooter(book: KoboBook, settings: KoboImporterSettings, importDate: string, createdDate: string): string {
   const tmpl = settings.footerTemplate.trim();
   if (!tmpl) return "";
 
   const vars = {
-    ...bookVars(book, importDate, settings),
+    ...bookVars(book, importDate, createdDate, settings),
     percent_read: String(Math.max(0, Math.min(100, Number(book.percentRead) || 0))),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
@@ -161,12 +166,13 @@ function renderFooter(book: KoboBook, settings: KoboImporterSettings, importDate
 export function renderAppendBlock(
   highlights: KoboHighlight[],
   book: KoboBook,
-  settings: KoboImporterSettings
+  settings: KoboImporterSettings,
+  createdDate: string
 ): string {
   const importDate = isoDate(new Date());
 
   const headingVars = {
-    ...bookVars(book, importDate, settings),
+    ...bookVars(book, importDate, createdDate, settings),
     percent_read: String(Math.max(0, Math.min(100, Number(book.percentRead) || 0))),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
@@ -184,12 +190,12 @@ export function renderAppendBlock(
     lines.push(heading, "");
   }
 
-  for (const h of highlights) {
-    lines.push(renderHighlight(h, book, settings, importDate));
+  for (let i = 0; i < highlights.length; i++) {
+    lines.push(renderHighlight(highlights[i], book, settings, importDate, i, createdDate));
   }
 
   if (settings.footerAppendOnEachImport) {
-    const footer = renderFooter(book, settings, importDate);
+    const footer = renderFooter(book, settings, importDate, createdDate);
     if (footer) {
       lines.push("");
       lines.push(footer);
@@ -211,16 +217,22 @@ export function extractExistingTexts(noteContent: string): Set<string> {
 
 // -- Variable helpers ----------------------------------------------------------
 
-function bookVars(book: KoboBook, importDate: string, settings?: KoboImporterSettings): Record<string, string> {
+function bookVars(book: KoboBook, importDate: string, createdDate: string, settings?: KoboImporterSettings): Record<string, string> {
   return {
     title: book.title,
-    author: book.author ?? "",
+    author: normalizeAuthor(book.author),
     series: book.series ?? "",
     series_number: book.seriesNumber ?? "",
     date_last_read: book.dateLastRead ? isoDate(new Date(book.dateLastRead)) : "",
-    date_imported: importDate,
+    date_last_imported: importDate,
+    date_note_created: createdDate,
     collections: wrapCollections(book.shelves, settings?.collectionsItemWrapper ?? ""),
   };
+}
+
+function normalizeAuthor(raw: string | undefined): string {
+  if (!raw) return "";
+  return raw.replace(/;\s*/g, ", ").replace(/,\s+/g, ", ").trim();
 }
 
 /**

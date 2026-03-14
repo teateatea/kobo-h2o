@@ -64,6 +64,9 @@ export interface KoboImporterSettings {
   // Format — Card 7: Append heading
   appendHeadingTemplate: string;
   appendHeadingOmitEmptyLines: boolean;
+
+  // Sort
+  highlightSortOrder: "date" | "position";
 }
 
 export const DEFAULT_SETTINGS: KoboImporterSettings = {
@@ -91,7 +94,8 @@ export const DEFAULT_SETTINGS: KoboImporterSettings = {
     "isbn: {{isbn}}",
     "publisher: {{publisher}}",
     "language: {{language}}",
-    "imported: {{date_imported}}",
+    "imported: {{date_last_imported}}",
+    "date_note_created: {{date_note_created}}",
     "collections: {{collections}}",
     "---",
   ].join("\n"),
@@ -104,7 +108,7 @@ export const DEFAULT_SETTINGS: KoboImporterSettings = {
     "*by {{author}}*",
     "{{series}}",
     "",
-    "{{highlight_count}} highlights — imported {{date_imported}}",
+    "{{highlight_count}} highlights — imported {{date_last_imported}}",
     "",
     "---",
     "",
@@ -134,8 +138,11 @@ export const DEFAULT_SETTINGS: KoboImporterSettings = {
   footerAppendOnEachImport: false,
 
   // Format — Card 7: Append heading
-  appendHeadingTemplate: "## Highlights from {{date_imported}}",
+  appendHeadingTemplate: "## Highlights from {{date_last_imported}}",
   appendHeadingOmitEmptyLines: true,
+
+  // Sort
+  highlightSortOrder: "date",
 };
 
 

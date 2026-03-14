@@ -10,11 +10,11 @@ const pillUpdaters = new WeakMap<HTMLElement, (v: string) => void>();
 
 const VARS_BOOK = [
   "{{title}}", "{{author}}", "{{series}}", "{{series_number}}",
-  "{{date_last_read}}", "{{date_imported}}", "{{collections}}",
+  "{{date_last_read}}", "{{date_last_imported}}", "{{date_note_created}}", "{{collections}}",
 ];
 const VARS_NOTETITLE = [
   "{{title}}", "{{author}}", "{{series}}", "{{series_number}}",
-  "{{date_last_read}}", "{{date_imported}}",
+  "{{date_last_read}}", "{{date_last_imported}}", "{{date_note_created}}",
 ];
 const VARS_FRONT = [
   ...VARS_BOOK,
@@ -23,12 +23,13 @@ const VARS_FRONT = [
 ];
 const VARS_HIGHLIGHT = [
   "{{title}}", "{{author}}", "{{series}}", "{{series_number}}",
-  "{{date_last_read}}", "{{date_imported}}", "{{collections}}",
+  "{{date_last_read}}", "{{date_last_imported}}", "{{date_note_created}}", "{{collections}}",
   "{{highlight_text}}", "{{chapter}}", "{{date_highlighted}}", "{{page_percent}}",
+  "{{highlight_number}}",
 ];
 const VARS_ANNOTATION = [
   "{{title}}", "{{author}}", "{{series}}", "{{series_number}}",
-  "{{date_last_read}}", "{{date_imported}}",
+  "{{date_last_read}}", "{{date_last_imported}}", "{{date_note_created}}",
   "{{annotation_text}}", "{{chapter}}", "{{date_annotated}}", "{{page_percent}}",
 ];
 const VARS_HEADING       = VARS_FRONT;
@@ -252,7 +253,7 @@ export class KoboSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           },
           defaultValue: DEFAULT_SETTINGS.frontmatterTemplate,
-          rows: 15,
+          rows: 16,
         });
       })
       .addSetting((s) => s
@@ -328,6 +329,17 @@ export class KoboSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.highlightOmitEmptyLines)
           .onChange(async (v) => {
             this.plugin.settings.highlightOmitEmptyLines = v;
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => s
+        .setName("Highlight sort order")
+        .setDesc("Order highlights within each book note.")
+        .addDropdown((d) => d
+          .addOption("date", "Date highlighted (default)")
+          .addOption("position", "Page position")
+          .setValue(this.plugin.settings.highlightSortOrder)
+          .onChange(async (v) => {
+            this.plugin.settings.highlightSortOrder = v as "date" | "position";
             await this.plugin.saveSettings();
           })));
 

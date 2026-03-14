@@ -19,6 +19,7 @@
 
 | Date | Version | Notes |
 |------|---------|-------|
+| 2026-03-14 | 1.0.1 | Author normalization, highlight numbering, sort order, date_note_created variable. |
 | 2026-03-14 | 1.0.0 | Submission-ready baseline. Submission blockers cleared. |
 
 ---
@@ -67,13 +68,14 @@ kobo-highlights-2-obsidian/
 **`src/types.ts`**
 - `KoboHighlight`: text, annotation, chapter, dateCreated, chapterProgress, bookTitle, bookAuthor
 - `KoboBook`: title, author, isbn, publisher, language, series, seriesNumber, dateLastRead, percentRead, highlightCount, annotationCount, shelves[], highlights[]
-- `KoboImporterSettings`: 7 format cards (Note name, Frontmatter, Note heading, Highlights, Annotations, Footer, Append heading), each with a template string + omitEmptyLines toggle
+- `KoboImporterSettings`: 7 format cards (Note name, Frontmatter, Note heading, Highlights, Annotations, Footer, Append heading), each with a template string + omitEmptyLines toggle; `highlightSortOrder: "date" | "position"`
 - `DEFAULT_SETTINGS`: all defaults including full template strings
 
 **`src/renderer.ts`**
-- `renderBookNote()` — assembles frontmatter + heading + highlights + footer
-- `renderHighlight()` — applies highlight template; appends hardcoded `\n\n---\n` (tasks #5 + #7)
-- `renderAppendBlock()` — used for reimport append mode
+- `renderBookNote(book, settings, createdDate)` — assembles frontmatter + heading + highlights + footer
+- `renderHighlight(h, book, settings, importDate, index, createdDate?)` — applies highlight template; appends hardcoded `\n\n---\n` (tasks #5 + #7)
+- `renderAppendBlock(highlights, book, settings, createdDate)` — used for reimport append mode
+- `bookVars(book, importDate, createdDate, settings?)` — builds base variable map; `normalizeAuthor()` converts `;`-separated authors to `,`
 - `applyVars()` — substitutes `{{var}}` tokens; handles multiline blockquote prefix
 - `applyVarsMultiline()` — splits template by line, drops lines where all vars are empty (omitEmptyLines)
 - `normaliseHighlightText()` — collapses excessive indentation on continuation lines
@@ -97,15 +99,23 @@ kobo-highlights-2-obsidian/
 - `findKoboDevice()` — scans drive letters D-Z on Windows; `/Volumes`, `/media`, `/mnt/media` on Mac/Linux
 - `confirmIfOverwrite()` — modal confirmation when Allow Overwrite is on
 - Settings migration: `shelvesAsTagsEnabled` → `collectionsAsListEnabled`
+- `applyFilters()` — word-count filter + optional position sort (by `chapterProgress`)
+- `isoDate()` helper — used to compute `createdDate` from `existing.stat.ctime` on append
 
 ### Template Variables
 
 | Context | Variables |
 |---------|-----------|
-| Note title | `{{title}}`, `{{author}}`, `{{series}}`, `{{series_number}}`, `{{date_last_read}}`, `{{date_imported}}` |
+| Note title | `{{title}}`, `{{author}}`, `{{series}}`, `{{series_number}}`, `{{date_last_read}}`, `{{date_last_imported}}`, `{{date_note_created}}` |
 | Frontmatter / heading / footer | Above + `{{percent_read}}`, `{{highlight_count}}`, `{{annotation_count}}`, `{{isbn}}`, `{{publisher}}`, `{{language}}`, `{{collections}}` |
-| Highlights | Book vars + `{{highlight_text}}`, `{{chapter}}`, `{{date_highlighted}}`, `{{page_percent}}` |
+| Highlights | Book vars + `{{highlight_text}}`, `{{chapter}}`, `{{date_highlighted}}`, `{{page_percent}}`, `{{highlight_number}}` |
 | Annotations | Book vars + `{{annotation_text}}`, `{{chapter}}`, `{{date_annotated}}`, `{{page_percent}}` |
+
+**Variable notes:**
+- `{{date_last_imported}}` — date of the current import run (updates every import)
+- `{{date_note_created}}` — date the note file was first created; stays fixed on re-imports
+- `{{highlight_number}}` — 1-based position within the import batch (or append batch)
+- `{{author}}` — semicolons normalized to commas automatically (e.g. `Smith; Jones` → `Smith, Jones`)
 
 ---
 

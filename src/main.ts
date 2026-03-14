@@ -14,6 +14,15 @@ import { KoboSettingsTab } from "./settings-tab";
 const fs = require("fs") as typeof import("fs");
 const path = require("path") as typeof import("path");
 
+function isoDate(d: Date): string {
+  try {
+    if (isNaN(d.getTime())) return "";
+    return d.toISOString().split("T")[0];
+  } catch {
+    return "";
+  }
+}
+
 export default class KoboPlugin extends Plugin {
   settings: KoboImporterSettings;
 
@@ -48,7 +57,7 @@ export default class KoboPlugin extends Plugin {
       saved.collectionsAsListEnabled = saved.shelvesAsTagsEnabled;
       delete saved.shelvesAsTagsEnabled;
     }
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
+this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
   }
 
   async saveSettings() {
@@ -179,9 +188,7 @@ export default class KoboPlugin extends Plugin {
 
   private applyFilters(books: KoboBook[]): KoboBook[] {
     const min = this.settings.minHighlightWords;
-    if (min <= 0) return books;
-
-    return books
+    let result = min <= 0 ? books : books
       .map((b) => {
         const filtered = b.highlights.filter(
           (h) => h.text.split(/\s+/).filter(Boolean).length >= min
@@ -194,6 +201,14 @@ export default class KoboPlugin extends Plugin {
         };
       })
       .filter((b) => b.highlights.length > 0);
+
+    if (this.settings.highlightSortOrder === "position") {
+      for (const b of result) {
+        b.highlights.sort((a, c) => a.chapterProgress - c.chapterProgress);
+      }
+    }
+
+    return result;
   }
 
   private async writeBooks(books: KoboBook[]): Promise<{ created: number; updated: number }> {
@@ -206,8 +221,9 @@ export default class KoboPlugin extends Plugin {
       const existing = this.app.vault.getAbstractFileByPath(filepath) as TFile | null;
 
       if (existing) {
+        const createdDate = isoDate(new Date(existing.stat.ctime));
         if (this.settings.allowOverwrite) {
-          await this.app.vault.modify(existing, renderBookNote(book, this.settings));
+          await this.app.vault.modify(existing, renderBookNote(book, this.settings, createdDate));
           updated++;
         } else {
           const content = await this.app.vault.read(existing);
@@ -221,12 +237,13 @@ export default class KoboPlugin extends Plugin {
               !(firstLine(h.text).length >= 10 && existingTexts.has(firstLine(h.text)))
           );
           if (newHighlights.length > 0) {
-            await this.app.vault.append(existing, renderAppendBlock(newHighlights, book, this.settings));
+            await this.app.vault.append(existing, renderAppendBlock(newHighlights, book, this.settings, createdDate));
             updated++;
           }
         }
       } else {
-        await this.app.vault.create(filepath, renderBookNote(book, this.settings));
+        const createdDate = isoDate(new Date());
+        await this.app.vault.create(filepath, renderBookNote(book, this.settings, createdDate));
         created++;
       }
     }
