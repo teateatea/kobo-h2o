@@ -19,6 +19,7 @@
 
 | Date | Version | Notes |
 |------|---------|-------|
+| 2026-03-14 | 1.0.3 | Conditional template syntax (#10) — new `src/template-parser.ts` pre-processor. |
 | 2026-03-14 | 1.0.2 | Chapter title cleanup — tasks #16–#20 (letter/number spacing, leading zero strip, prefix normalization, word trim, symbol replacement). |
 | 2026-03-14 | 1.0.1 | Author normalization, highlight numbering, sort order, date_note_created variable. |
 | 2026-03-14 | 1.0.0 | Submission-ready baseline. Submission blockers cleared. |
