@@ -92,6 +92,55 @@ function renderNoteHeading(book: KoboBook, settings: KoboImporterSettings, impor
   return applyVarsMultiline(tmpl, vars, settings.noteHeadingOmitEmptyLines);
 }
 
+// -- Chapter title cleanup -----------------------------------------------------
+
+function formatChapter(chapter: string, settings: KoboImporterSettings): string {
+  if (!chapter) return chapter;
+  let s = chapter;
+
+  // #20 — Symbol normalization (each char in chapterSymbolsToReplace → chapterSymbolReplacement)
+  if (settings.chapterSymbolsToReplace) {
+    const target = settings.chapterSymbolReplacement ?? "-";
+    for (const sym of settings.chapterSymbolsToReplace) {
+      s = s.split(sym).join(target);
+    }
+  }
+
+  // #16 — Add space at letter↔digit boundaries in both directions
+  if (settings.chapterAddLetterNumberSpacing) {
+    s = s.replace(/([A-Za-z])(\d)/g, "$1 $2").replace(/(\d)([A-Za-z])/g, "$1 $2");
+  }
+
+  // #17 — Strip leading zeros from any numeric sequence
+  if (settings.chapterStripLeadingZeros) {
+    s = s.replace(/\b0+(\d)/g, "$1");
+  }
+
+  // #19 — Prefix normalization
+  if (settings.chapterPrefixNormalization !== "none") {
+    const prefixRe = /^(chapter|ch)[\s._-]*/i;
+    if (settings.chapterPrefixNormalization === "strip") {
+      s = s.replace(prefixRe, "");
+    } else {
+      s = s.replace(prefixRe, settings.chapterPrefixNormalization + " ");
+    }
+  }
+
+  // #18 — Trim words from start
+  if (settings.chapterTrimStartWords > 0) {
+    const words = s.trim().split(/\s+/);
+    s = words.slice(settings.chapterTrimStartWords).join(" ");
+  }
+
+  // #18 — Trim words from end
+  if (settings.chapterTrimEndWords > 0) {
+    const words = s.trim().split(/\s+/);
+    s = words.slice(0, words.length - settings.chapterTrimEndWords).join(" ");
+  }
+
+  return s.trim();
+}
+
 // -- Single highlight ----------------------------------------------------------
 
 export function renderHighlight(
@@ -106,7 +155,7 @@ export function renderHighlight(
   const vars: Record<string, string> = {
     ...bookVars(book, importDate, cd, settings),
     highlight_text: normaliseHighlightText(h.text),
-    chapter: h.chapter ?? "",
+    chapter: formatChapter(h.chapter ?? "", settings),
     date_highlighted: formatDate(h.dateCreated),
     page_percent: h.chapterProgress > 0 ? `${Math.round(h.chapterProgress * 100)}%` : "",
     highlight_number: String(index + 1),
@@ -135,7 +184,7 @@ function renderAnnotation(
   const vars: Record<string, string> = {
     ...bookVars(book, importDate, createdDate ?? importDate, settings),
     annotation_text: h.annotation,
-    chapter: h.chapter ?? "",
+    chapter: formatChapter(h.chapter ?? "", settings),
     date_annotated: formatDate(h.dateCreated),
     page_percent: h.chapterProgress > 0 ? `${Math.round(h.chapterProgress * 100)}%` : "",
   };

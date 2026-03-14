@@ -67,6 +67,15 @@ export interface KoboImporterSettings {
 
   // Sort
   highlightSortOrder: "date" | "position";
+
+  // Chapter Title Cleanup
+  chapterAddLetterNumberSpacing: boolean;
+  chapterStripLeadingZeros: boolean;
+  chapterTrimStartWords: number;
+  chapterTrimEndWords: number;
+  chapterPrefixNormalization: "none" | "strip" | "Chapter" | "Ch";
+  chapterSymbolsToReplace: string;
+  chapterSymbolReplacement: string;
 }
 
 export const DEFAULT_SETTINGS: KoboImporterSettings = {
@@ -143,6 +152,15 @@ export const DEFAULT_SETTINGS: KoboImporterSettings = {
 
   // Sort
   highlightSortOrder: "date",
+
+  // Chapter Title Cleanup
+  chapterAddLetterNumberSpacing: false,
+  chapterStripLeadingZeros: false,
+  chapterTrimStartWords: 0,
+  chapterTrimEndWords: 0,
+  chapterPrefixNormalization: "none",
+  chapterSymbolsToReplace: "",
+  chapterSymbolReplacement: "-",
 };
 
 

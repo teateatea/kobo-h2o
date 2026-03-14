@@ -19,6 +19,7 @@
 
 | Date | Version | Notes |
 |------|---------|-------|
+| 2026-03-14 | 1.0.2 | Chapter title cleanup — tasks #16–#20 (letter/number spacing, leading zero strip, prefix normalization, word trim, symbol replacement). |
 | 2026-03-14 | 1.0.1 | Author normalization, highlight numbering, sort order, date_note_created variable. |
 | 2026-03-14 | 1.0.0 | Submission-ready baseline. Submission blockers cleared. |
 
@@ -68,12 +69,13 @@ kobo-highlights-2-obsidian/
 **`src/types.ts`**
 - `KoboHighlight`: text, annotation, chapter, dateCreated, chapterProgress, bookTitle, bookAuthor
 - `KoboBook`: title, author, isbn, publisher, language, series, seriesNumber, dateLastRead, percentRead, highlightCount, annotationCount, shelves[], highlights[]
-- `KoboImporterSettings`: 7 format cards (Note name, Frontmatter, Note heading, Highlights, Annotations, Footer, Append heading), each with a template string + omitEmptyLines toggle; `highlightSortOrder: "date" | "position"`
+- `KoboImporterSettings`: 7 format cards (Note name, Frontmatter, Note heading, Highlights, Annotations, Footer, Append heading), each with a template string + omitEmptyLines toggle; `highlightSortOrder: "date" | "position"`; 7 chapter title cleanup fields (`chapterAddLetterNumberSpacing`, `chapterStripLeadingZeros`, `chapterTrimStartWords`, `chapterTrimEndWords`, `chapterPrefixNormalization`, `chapterSymbolsToReplace`, `chapterSymbolReplacement`)
 - `DEFAULT_SETTINGS`: all defaults including full template strings
 
 **`src/renderer.ts`**
 - `renderBookNote(book, settings, createdDate)` — assembles frontmatter + heading + highlights + footer
-- `renderHighlight(h, book, settings, importDate, index, createdDate?)` — applies highlight template; appends hardcoded `\n\n---\n` (tasks #5 + #7)
+- `renderHighlight(h, book, settings, importDate, index, createdDate?)` — applies highlight template; appends hardcoded `\n\n---\n` (tasks #5 + #7); `{{chapter}}` passes through `formatChapter()`
+- `formatChapter(chapter, settings)` — render-time chapter title cleanup: symbols → spacing → leading zeros → prefix normalization → word trim (start/end)
 - `renderAppendBlock(highlights, book, settings, createdDate)` — used for reimport append mode
 - `bookVars(book, importDate, createdDate, settings?)` — builds base variable map; `normalizeAuthor()` converts `;`-separated authors to `,`
 - `applyVars()` — substitutes `{{var}}` tokens; handles multiline blockquote prefix
@@ -153,11 +155,10 @@ Copy these three files into `<vault>/.obsidian/plugins/kobo-highlights-2-obsidia
 
 ## Known Issues & Next Work
 
-See task list. Next session begins at:
-- **#7** Make heading dividers user-configurable (`renderer.ts:120` hardcoded `---`)
-- **#5** Add highlight spacing setting (`renderer.ts:120` hardcoded `\n\n`)
-
-These touch the same line and should be implemented together.
+See TASKS.md. Remaining work includes:
+- **#14/#15** Author name order and wrappers
+- **#9** Highlight colour tagging (was previously working, now broken)
+- **#3** Investigate highlight time storage in SQLite
 
 ---
 

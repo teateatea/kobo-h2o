@@ -373,6 +373,91 @@ export class KoboSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })));
 
+    // -- Chapter Title ---------------------------------------------------------
+    new SettingGroup(containerEl)
+      .setHeading("Chapter Title")
+      .addSetting((s) => s
+        .setName("Add letter/number spacing")
+        .setDesc("Insert spaces at letter↔digit boundaries in both directions (e.g. ch5Intro → ch 5 Intro).")
+        .addToggle((t) => t
+          .setValue(this.plugin.settings.chapterAddLetterNumberSpacing)
+          .onChange(async (v) => {
+            this.plugin.settings.chapterAddLetterNumberSpacing = v;
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => s
+        .setName("Strip leading zeros")
+        .setDesc("Remove leading zeros from numbers (e.g. 01 → 1).")
+        .addToggle((t) => t
+          .setValue(this.plugin.settings.chapterStripLeadingZeros)
+          .onChange(async (v) => {
+            this.plugin.settings.chapterStripLeadingZeros = v;
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => {
+        s.setName("Trim words from start")
+          .setDesc("Remove first N words from the chapter title (0 = off).")
+          .addText((t) => t
+            .setValue(String(this.plugin.settings.chapterTrimStartWords))
+            .onChange(async (v) => {
+              const n = parseInt(v, 10);
+              this.plugin.settings.chapterTrimStartWords = isNaN(n) || n < 0 ? 0 : n;
+              await this.plugin.saveSettings();
+            }));
+        s.controlEl.querySelector("input")!.type = "number";
+        s.controlEl.querySelector("input")!.min = "0";
+        s.controlEl.querySelector("input")!.style.width = "5em";
+      })
+      .addSetting((s) => {
+        s.setName("Trim words from end")
+          .setDesc("Remove last N words from the chapter title (0 = off).")
+          .addText((t) => t
+            .setValue(String(this.plugin.settings.chapterTrimEndWords))
+            .onChange(async (v) => {
+              const n = parseInt(v, 10);
+              this.plugin.settings.chapterTrimEndWords = isNaN(n) || n < 0 ? 0 : n;
+              await this.plugin.saveSettings();
+            }));
+        s.controlEl.querySelector("input")!.type = "number";
+        s.controlEl.querySelector("input")!.min = "0";
+        s.controlEl.querySelector("input")!.style.width = "5em";
+      })
+      .addSetting((s) => s
+        .setName("Chapter prefix")
+        .setDesc("Normalize 'ch'/'chapter' prefix variants.")
+        .addDropdown((d) => d
+          .addOption("none", "Keep as-is")
+          .addOption("strip", "Strip prefix")
+          .addOption("Chapter", 'Standardize to "Chapter"')
+          .addOption("Ch", 'Standardize to "Ch"')
+          .setValue(this.plugin.settings.chapterPrefixNormalization)
+          .onChange(async (v) => {
+            this.plugin.settings.chapterPrefixNormalization = v as "none" | "strip" | "Chapter" | "Ch";
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => {
+        s.setName("Symbols to replace")
+          .setDesc("Each character in this string will be replaced. Example: ;,-")
+          .addText((t) => t
+            .setValue(this.plugin.settings.chapterSymbolsToReplace)
+            .onChange(async (v) => {
+              this.plugin.settings.chapterSymbolsToReplace = v;
+              await this.plugin.saveSettings();
+            }));
+        s.controlEl.querySelector("input")!.style.width = "8em";
+      })
+      .addSetting((s) => {
+        s.setName("Replace with")
+          .setDesc("Replacement string (default: -). Supports multi-char (e.g.  - ). Clear to delete symbols entirely.")
+          .addText((t) => t
+            .setValue(this.plugin.settings.chapterSymbolReplacement)
+            .onChange(async (v) => {
+              this.plugin.settings.chapterSymbolReplacement = v;
+              await this.plugin.saveSettings();
+            }));
+        s.controlEl.querySelector("input")!.style.width = "8em";
+      });
+
     // -- Footer ----------------------------------------------------------------
     new SettingGroup(containerEl)
       .setHeading("Footer")

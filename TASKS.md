@@ -12,12 +12,12 @@ Persistent cross-session task list. Update status inline: `[ ]` pending, `[x]` d
 
 ## Quick Wins / High Value
 
-- [ ] **#13** Normalize author separator — convert `;` to `,` between multiple authors
-- [ ] **#7** Make heading dividers user-configurable — remove hardcoded `---`, move to default template
-- [ ] **#12** Add note creation date as a frontmatter field
-- [ ] **#4** Add highlight numbering (#1, #2, #3… per book)
-- [ ] **#5** Add highlight spacing setting — single or double spacing between highlights
-- [ ] **#6** Add sort order option — sort highlights by date or by page position (ChapterProgress %)
+- [x] **#13** Normalize author separator — convert `;` to `,` between multiple authors
+- [x] **#7** Make heading dividers user-configurable — remove hardcoded `---`, move to default template
+- [x] **#12** Add note creation date as a frontmatter field
+- [x] **#4** Add highlight numbering (#1, #2, #3… per book)
+- [x] **#5** Add highlight spacing setting — single or double spacing between highlights
+- [x] **#6** Add sort order option — sort highlights by date or by page position (ChapterProgress %)
 
 ---
 
@@ -33,11 +33,11 @@ Persistent cross-session task list. Update status inline: `[ ]` pending, `[x]` d
 
 ## Chapter Title Cleanup *(batch together)*
 
-- [ ] **#16** Chapter title formatting — add space between letters/numbers, apply title case
-- [ ] **#17** Strip leading zeros from chapter numbers
-- [ ] **#18** Trim X words from start and/or end of chapter titles
-- [ ] **#19** Normalize `ch` / `chapter` prefix variants
-- [ ] **#20** Symbol normalization — replace uncommon symbols (e.g. `;` → `-`)
+- [x] **#16** Chapter title formatting — add space between letters/numbers, apply title case
+- [x] **#17** Strip leading zeros from chapter numbers
+- [x] **#18** Trim X words from start and/or end of chapter titles
+- [x] **#19** Normalize `ch` / `chapter` prefix variants
+- [x] **#20** Symbol normalization — replace uncommon symbols (e.g. `;` → `-`)
 
 ---
 
@@ -77,3 +77,7 @@ Persistent cross-session task list. Update status inline: `[ ]` pending, `[x]` d
 - [x] **#27** Add README metadata quality notice (Calibre recommendation)
 - [x] **#28** Verify startup time baseline (5–6ms) before submission
 - [x] **#29** Verify file size footprint (720KB) before submission
+- [x] **#4** Add highlight numbering (#1, #2, #3… per book)
+- [x] **#6** Add sort order option — sort highlights by date or by page position (ChapterProgress %)
+- [x] **#12** Add note creation date (`{{date_note_created}}`) as a frontmatter field
+- [x] **#13** Normalize author separator — convert `;` to `,` between multiple authors
