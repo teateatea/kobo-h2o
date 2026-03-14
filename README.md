@@ -1,4 +1,4 @@
-# Kobo Highlights 2 Obsidian
+# Kobo-Highlights-2-Obsidian
 
 Import highlights from your Kobo e-reader directly into Obsidian. One note per book, with metadata, chapter context, and configurable formatting.
 
@@ -22,7 +22,7 @@ Import highlights from your Kobo e-reader directly into Obsidian. One note per b
 ### From Community Plugins (recommended)
 
 1. Open **Settings → Community plugins → Browse**
-2. Search for **Kobo Highlights 2 Obsidian**
+2. Search for **Kobo-Highlights-2-Obsidian**
 3. Click **Install**, then **Enable**
 
 ### Manual Installation
