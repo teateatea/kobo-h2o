@@ -183,6 +183,10 @@ When using **Import from text/CSV**, column names are auto-detected (case-insens
 
 ## Troubleshooting
 
+**Titles, authors, or series look wrong**
+- Kobo stores metadata exactly as it was loaded onto the device — this plugin does not correct it
+- To clean up metadata before importing, try https://calibre-ebook.com
+
 **"No highlights found"**
 - Make sure you selected `KoboReader.sqlite`, not another file
 - The `.kobo` folder may be hidden — enable hidden files in your file explorer
