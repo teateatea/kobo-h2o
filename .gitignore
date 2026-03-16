@@ -4,6 +4,9 @@ dist/
 .DS_Store
 Thumbs.db
 
+# Claude Code config and plans
+.claude/
+
 # Test data — keep private
 KoboReader.sqlite
 *.sqlite
