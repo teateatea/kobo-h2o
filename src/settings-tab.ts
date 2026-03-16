@@ -654,7 +654,16 @@ function templateSingleLine(
   };
 
   const validate = (value: string) => {
-    const found = [...value.matchAll(/\{\{([^}]+)\}\}/g)].map((m) => `{{${m[1]}}}`);
+    const found = [...value.matchAll(/\{\{([^}]+)\}\}/g)].flatMap((m) => {
+      const content = m[1];
+      const pipeIdx = content.indexOf("|");
+      if (pipeIdx === -1) return [`{{${content}}}`];
+      const left = content.slice(0, pipeIdx);
+      const right = content.slice(pipeIdx + 1);
+      if (/^\d+$/.test(left)) return [];               // {{N|text}} cond-block — skip
+      if (/^\d+$/.test(right)) return [`{{${left}}}`]; // {{key|N}} cond-var — bare key
+      return [`{{${content}}}`];                        // unknown pipe — flag as-is
+    });
     const unknown = [...new Set(found.filter((v) => !opts.knownVars.includes(v)))];
     const missingRequired = opts.requiredVar !== undefined && (
       opts.requiredVar === ""
@@ -759,7 +768,16 @@ function templateTextarea(
   };
 
   const validate = (value: string) => {
-    const found = [...value.matchAll(/\{\{([^}]+)\}\}/g)].map((m) => `{{${m[1]}}}`);
+    const found = [...value.matchAll(/\{\{([^}]+)\}\}/g)].flatMap((m) => {
+      const content = m[1];
+      const pipeIdx = content.indexOf("|");
+      if (pipeIdx === -1) return [`{{${content}}}`];
+      const left = content.slice(0, pipeIdx);
+      const right = content.slice(pipeIdx + 1);
+      if (/^\d+$/.test(left)) return [];               // {{N|text}} cond-block — skip
+      if (/^\d+$/.test(right)) return [`{{${left}}}`]; // {{key|N}} cond-var — bare key
+      return [`{{${content}}}`];                        // unknown pipe — flag as-is
+    });
     const unknown = [...new Set(found.filter((v) => !opts.knownVars.includes(v)))];
     const missingRequired = opts.requiredVar !== undefined &&
       !found.includes(`{{${opts.requiredVar}}}`);
