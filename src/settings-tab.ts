@@ -377,8 +377,8 @@ export class KoboSettingsTab extends PluginSettingTab {
     new SettingGroup(containerEl)
       .setHeading("Chapter Title")
       .addSetting((s) => s
-        .setName("Add letter/number spacing")
-        .setDesc("Insert spaces at letter↔digit boundaries in both directions (e.g. ch5Intro → ch 5 Intro).")
+        .setName("Add spaces between letters and numbers")
+        .setDesc("Insert spaces at letter<->digit boundaries (e.g. ch5Intro -> ch 5 Intro)")
         .addToggle((t) => t
           .setValue(this.plugin.settings.chapterAddLetterNumberSpacing)
           .onChange(async (v) => {
@@ -396,9 +396,10 @@ export class KoboSettingsTab extends PluginSettingTab {
           })))
       .addSetting((s) => {
         s.setName("Trim words from start")
-          .setDesc("Remove first N words from the chapter title (0 = off).")
+          .setDesc("Remove first N words from the chapter title (e.g. A Lopsided Arms Race -> Arms Race)")
           .addText((t) => t
-            .setValue(String(this.plugin.settings.chapterTrimStartWords))
+            .setPlaceholder("0")
+            .setValue(this.plugin.settings.chapterTrimStartWords === 0 ? "" : String(this.plugin.settings.chapterTrimStartWords))
             .onChange(async (v) => {
               const n = parseInt(v, 10);
               this.plugin.settings.chapterTrimStartWords = isNaN(n) || n < 0 ? 0 : n;
@@ -410,9 +411,10 @@ export class KoboSettingsTab extends PluginSettingTab {
       })
       .addSetting((s) => {
         s.setName("Trim words from end")
-          .setDesc("Remove last N words from the chapter title (0 = off).")
+          .setDesc("Remove last N words from the chapter title (e.g. A Lopsided Arms Race -> A Lopsided)")
           .addText((t) => t
-            .setValue(String(this.plugin.settings.chapterTrimEndWords))
+            .setPlaceholder("0")
+            .setValue(this.plugin.settings.chapterTrimEndWords === 0 ? "" : String(this.plugin.settings.chapterTrimEndWords))
             .onChange(async (v) => {
               const n = parseInt(v, 10);
               this.plugin.settings.chapterTrimEndWords = isNaN(n) || n < 0 ? 0 : n;
@@ -423,8 +425,8 @@ export class KoboSettingsTab extends PluginSettingTab {
         s.controlEl.querySelector("input")!.style.width = "5em";
       })
       .addSetting((s) => s
-        .setName("Chapter prefix")
-        .setDesc("Normalize 'ch'/'chapter' prefix variants.")
+        .setName("Standardize chapter prefix")
+        .setDesc("Normalize 'ch' & 'chapter' prefixes (e.g. lotr ch 2 -> lotr chapter 2)")
         .addDropdown((d) => d
           .addOption("none", "Keep as-is")
           .addOption("strip", "Strip prefix")
