@@ -144,6 +144,16 @@ function formatChapter(chapter: string, settings: KoboImporterSettings): string 
 
 // -- Single highlight ----------------------------------------------------------
 
+function koboColorName(color: number | undefined): string {
+  switch (color) {
+    case 0: case undefined: return "yellow";
+    case 1: return "red";
+    case 2: return "blue";
+    case 3: return "green";
+    default: return "grey";
+  }
+}
+
 export function renderHighlight(
   h: KoboHighlight,
   book: KoboBook,
@@ -160,6 +170,7 @@ export function renderHighlight(
     date_highlighted: formatDate(h.dateCreated),
     page_percent: h.chapterProgress > 0 ? `${Math.round(h.chapterProgress * 100)}%` : "",
     highlight_number: String(index + 1),
+    highlight_color: koboColorName(h.color),
     annotation: h.annotation
       ? renderAnnotation(h, book, settings, importDate, cd)
       : "",

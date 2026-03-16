@@ -8,6 +8,7 @@ export interface KoboHighlight {
   chapterProgress: number;
   bookTitle?: string;
   bookAuthor?: string;
+  color?: number;
 }
 
 export interface KoboBook {

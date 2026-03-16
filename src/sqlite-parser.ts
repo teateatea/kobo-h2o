@@ -42,7 +42,8 @@ function queryBooks(db: any): Map<string, KoboBook> {
       book.SeriesNumber,
       book.DateLastRead,
       book.___PercentRead AS percent_read,
-      ch.Title          AS chapter_title
+      ch.Title          AS chapter_title,
+      b.Color
     FROM Bookmark b
     JOIN content book ON book.ContentID = b.VolumeID
     LEFT JOIN content ch ON ch.ContentID = b.ContentID AND ch.ContentType = '9'
@@ -99,6 +100,7 @@ function queryBooks(db: any): Map<string, KoboBook> {
       chapterProgress: getNum("ChapterProgress"),
       bookTitle,
       bookAuthor,
+      color: row[col("Color")] != null ? Number(row[col("Color")]) : undefined,
     };
 
     const book = bookMap.get(volumeId)!;

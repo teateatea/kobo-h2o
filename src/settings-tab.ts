@@ -25,7 +25,7 @@ const VARS_HIGHLIGHT = [
   "{{title}}", "{{author}}", "{{series}}", "{{series_number}}",
   "{{date_last_read}}", "{{date_last_imported}}", "{{date_note_created}}", "{{collections}}",
   "{{highlight_text}}", "{{chapter}}", "{{date_highlighted}}", "{{page_percent}}",
-  "{{highlight_number}}",
+  "{{highlight_number}}", "{{highlight_color}}",
 ];
 const VARS_ANNOTATION = [
   "{{title}}", "{{author}}", "{{series}}", "{{series_number}}",
