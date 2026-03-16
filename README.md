@@ -1,18 +1,15 @@
 # Kobo-Highlights-2-Obsidian
 
-Import highlights from your Kobo e-reader directly into Obsidian. One note per book, with metadata, chapter context, and configurable formatting.
+Import highlights from your Kobo e-reader directly into Obsidian. One note per book, with metadata and configurable formatting.
 
 ---
 
 ## Features
 
-- **Three import methods**: USB auto-scan, manual SQLite file picker, or text/CSV export
-- **One note per book** — title, author, series, and YAML frontmatter included
-- **Chapter context** — each highlight shows its chapter and date
-- **Smart reimport** — new highlights are appended; your edits are never overwritten
+- **Import methods**: Direct from USB device, SQLite file, text file, or CSV file.
+- **Configurable import format**: customize your import template
+- **One note per book** — title, author, series, percent read, tags, and more in YAML frontmatter
 - **Color callouts** — map Kobo highlight colors (yellow/red/blue/green) to Obsidian callout types
-- **Shelves as tags** — import your Kobo collections as frontmatter tags
-- **Reading dashboard** — optional summary note listing all imported books
 - **Fully offline** — SQLite parsing uses a bundled WASM binary; no internet required
 
 ---
@@ -190,13 +187,9 @@ When using **Import from text/CSV**, column names are auto-detected (case-insens
 **"No highlights found"**
 - Make sure you selected `KoboReader.sqlite`, not another file
 - The `.kobo` folder may be hidden — enable hidden files in your file explorer
-- Dog-ears (bookmarks without selected text) are intentionally excluded
-
-**"sql-wasm.wasm not found"**
-- All three files must be present in the plugin folder: `main.js`, `manifest.json`, `sql-wasm.wasm`
-- Reinstall the plugin to restore the missing file
 
 **Device not detected automatically**
+- Confirm that your device is connected. Some cables don't support data (only charging).
 - Use **Import from SQLite file** to locate the file manually
 - On Mac, the Kobo mounts under `/Volumes`
 - On Linux, check `/media/<username>/KOBOeReader/.kobo/KoboReader.sqlite`
@@ -205,7 +198,7 @@ When using **Import from text/CSV**, column names are auto-detected (case-insens
 
 ## Privacy
 
-All processing is entirely local. No data is sent anywhere. The SQLite WASM binary is bundled in the plugin — no internet connection is needed at any point.
+All processing is entirely local. No data is sent anywhere. The SQLite WASM binary is bundled in the plugin — no internet connection is needed, after installation.
 
 ---
 
