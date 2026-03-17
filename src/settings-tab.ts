@@ -373,6 +373,8 @@ export class KoboSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })));
 
+    let replaceWithSettingEl: HTMLElement | null = null;
+
     // -- Chapter Title ---------------------------------------------------------
     new SettingGroup(containerEl)
       .setHeading("Chapter Title")
@@ -441,17 +443,21 @@ export class KoboSettingsTab extends PluginSettingTab {
         s.setName("Symbols to replace")
           .setDesc("Each character in this string will be replaced. Example: ;,-")
           .addText((t) => t
+            .setPlaceholder("e.g. ;,-")
             .setValue(this.plugin.settings.chapterSymbolsToReplace)
             .onChange(async (v) => {
               this.plugin.settings.chapterSymbolsToReplace = v;
               await this.plugin.saveSettings();
+              if (replaceWithSettingEl) setDisabled(replaceWithSettingEl, v.trim() === "");
             }));
         s.controlEl.querySelector("input")!.style.width = "8em";
       })
       .addSetting((s) => {
+        replaceWithSettingEl = s.settingEl;
         s.setName("Replace with")
           .setDesc("Replacement string (default: -). Supports multi-char (e.g.  - ). Clear to delete symbols entirely.")
           .addText((t) => t
+            .setPlaceholder("(delete)")
             .setValue(this.plugin.settings.chapterSymbolReplacement)
             .onChange(async (v) => {
               this.plugin.settings.chapterSymbolReplacement = v;
@@ -459,6 +465,7 @@ export class KoboSettingsTab extends PluginSettingTab {
             }));
         s.controlEl.querySelector("input")!.style.width = "8em";
       });
+    if (replaceWithSettingEl) setDisabled(replaceWithSettingEl, this.plugin.settings.chapterSymbolsToReplace.trim() === "");
 
     // -- Footer ----------------------------------------------------------------
     new SettingGroup(containerEl)
@@ -596,6 +603,12 @@ function varRefRow(
     warnP.style.cssText = "margin:0; font-size:0.8em; color:var(--text-muted); display:none;";
     pagePercentWarnEl = warnP;
   }
+
+  const condHint = container.createEl("p");
+  condHint.style.cssText = "margin:0; font-size:0.78em; color:var(--text-faint);";
+  condHint.innerHTML =
+    "Conditional: <code>{{series|1}}</code> activates group 1 when series is non-empty; " +
+    "<code>{{1|some text}}</code> renders when group 1 is active.";
 
   pillUpdaters.set(s.settingEl, (value: string) => {
     const usedVars = new Set(
