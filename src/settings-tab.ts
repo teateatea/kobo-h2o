@@ -78,18 +78,6 @@ export class KoboSettingsTab extends PluginSettingTab {
           t.inputEl.addEventListener("focus", onFirstFocus);
         }));
 
-    // -- Skip single-word highlights -------------------------------------------
-    new SettingGroup(containerEl)
-      .addSetting((s) => s
-        .setName("Skip single-word highlights")
-        .setDesc("Filters out one-word highlights, which are usually dictionary lookups.")
-        .addToggle((t) => t
-          .setValue(this.plugin.settings.minHighlightWords >= 2)
-          .onChange(async (v) => {
-            this.plugin.settings.minHighlightWords = v ? 2 : 0;
-            await this.plugin.saveSettings();
-          })));
-
     // -- Collections item wrapper ----------------------------------------------
     new SettingGroup(containerEl)
       .addSetting((s) => {
@@ -340,6 +328,15 @@ export class KoboSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.highlightSortOrder)
           .onChange(async (v) => {
             this.plugin.settings.highlightSortOrder = v as "date" | "position";
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => s
+        .setName("Skip single-word highlights")
+        .setDesc("Filters out one-word highlights, which are usually dictionary lookups.")
+        .addToggle((t) => t
+          .setValue(this.plugin.settings.minHighlightWords >= 2)
+          .onChange(async (v) => {
+            this.plugin.settings.minHighlightWords = v ? 2 : 0;
             await this.plugin.saveSettings();
           })));
 
