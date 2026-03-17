@@ -34,8 +34,8 @@ Import highlights from your Kobo e-reader directly into Obsidian. One note per b
 ### Build from Source
 
 ```bash
-git clone https://github.com/kobo-h2o/kobo-highlights-2-obsidian
-cd kobo-highlights-2-obsidian
+git clone https://github.com/teateatea/kobo-h2o
+cd kobo-h2o
 npm install
 ```
 
