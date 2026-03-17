@@ -69,6 +69,13 @@ export interface KoboImporterSettings {
   // Sort
   highlightSortOrder: "date" | "position";
 
+  // Author & Metadata Formatting
+  dateFormat: string;
+  authorNameOrder: "as-is" | "first-last";
+  authorNameWrapper: string;
+  titleCaseFormat: "as-is" | "title-case" | "upper" | "lower";
+  percentFormat: "decimal" | "integer" | "percent" | "PCT" | "pct";
+
   // Chapter Title Cleanup
   chapterAddLetterNumberSpacing: boolean;
   chapterStripLeadingZeros: boolean;
@@ -153,6 +160,13 @@ export const DEFAULT_SETTINGS: KoboImporterSettings = {
 
   // Sort
   highlightSortOrder: "date",
+
+  // Author & Metadata Formatting
+  dateFormat: "YYYY-MM-DD",
+  authorNameOrder: "as-is",
+  authorNameWrapper: "",
+  titleCaseFormat: "as-is",
+  percentFormat: "integer",
 
   // Chapter Title Cleanup
   chapterAddLetterNumberSpacing: false,
