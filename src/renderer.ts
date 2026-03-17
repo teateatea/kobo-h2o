@@ -50,7 +50,7 @@ function renderFrontmatter(book: KoboBook, settings: KoboImporterSettings, impor
 
   const vars = {
     ...bookVars(book, importDate, createdDate, settings),
-    percent_read: formatPercent(Number(book.percentRead) || 0, settings),
+    percent_read: formatPercent((Number(book.percentRead) || 0) / 100, settings),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
     isbn: book.isbn ?? "",
@@ -83,7 +83,7 @@ function renderNoteHeading(book: KoboBook, settings: KoboImporterSettings, impor
 
   const vars = {
     ...bookVars(book, importDate, createdDate, settings),
-    percent_read: formatPercent(Number(book.percentRead) || 0, settings),
+    percent_read: formatPercent((Number(book.percentRead) || 0) / 100, settings),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
     isbn: book.isbn ?? "",
@@ -212,7 +212,7 @@ function renderFooter(book: KoboBook, settings: KoboImporterSettings, importDate
 
   const vars = {
     ...bookVars(book, importDate, createdDate, settings),
-    percent_read: formatPercent(Number(book.percentRead) || 0, settings),
+    percent_read: formatPercent((Number(book.percentRead) || 0) / 100, settings),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
     isbn: book.isbn ?? "",
@@ -235,7 +235,7 @@ export function renderAppendBlock(
 
   const headingVars = {
     ...bookVars(book, importDate, createdDate, settings),
-    percent_read: formatPercent(Number(book.percentRead) || 0, settings),
+    percent_read: formatPercent((Number(book.percentRead) || 0) / 100, settings),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
     isbn: book.isbn ?? "",
