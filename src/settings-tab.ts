@@ -44,6 +44,7 @@ const PAGE_PERCENT_WARN =
 
 export class KoboSettingsTab extends PluginSettingTab {
   plugin: KoboPlugin;
+  private sectionOpenStates = new Map<string, boolean>();
 
   constructor(app: App, plugin: KoboPlugin) {
     super(app, plugin);
@@ -77,80 +78,6 @@ export class KoboSettingsTab extends PluginSettingTab {
           };
           t.inputEl.addEventListener("focus", onFirstFocus);
         }));
-
-    // -- Collections item wrapper ----------------------------------------------
-    new SettingGroup(containerEl)
-      .addSetting((s) => {
-        s.setName("Collections item wrapper")
-          .setDesc(
-            "Wraps each collection name when {{collections}} is used in templates. " +
-            "Use ## as a placeholder for the collection name. " +
-            "Leave empty for a plain comma list."
-          );
-
-        const input = s.controlEl.createEl("input", { type: "text" } as any);
-        input.placeholder = "Example: [[##]]";
-        input.value = this.plugin.settings.collectionsItemWrapper;
-        input.style.width = "12em";
-
-        // Keep controlEl (and the input) pinned to the right even with a long desc
-        s.infoEl.style.flexShrink = "1";
-        s.controlEl.style.flexShrink = "0";
-
-        s.settingEl.style.flexWrap = "wrap";
-        const bottomRow = s.settingEl.createEl("div");
-        bottomRow.style.cssText =
-          "width:100%; display:flex; justify-content:space-between; align-items:center; margin-top:6px;";
-
-        const warn = bottomRow.createEl("span");
-        warn.style.cssText = "font-size:0.85em; color:var(--color-yellow); display:none;";
-
-        const resetBtn = bottomRow.createEl("button");
-        resetBtn.textContent = "Reset to default";
-        resetBtn.style.cssText = "font-size:0.82em; margin-left:auto; display:none;";
-
-        const showWarn = (msg: string) => {
-          warn.textContent = msg;
-          warn.style.display = "block";
-          input.style.outline = "1px solid var(--color-yellow)";
-          input.style.borderColor = "var(--color-yellow)";
-        };
-        const hideWarn = () => {
-          warn.style.display = "none";
-          input.style.outline = "";
-          input.style.borderColor = "";
-        };
-
-        const validate = (value: string) => {
-          if (value !== "" && value.trim() === "") {
-            showWarn("⚠ Invisible text: This wrapper is not empty!");
-          } else if (value.trim() !== "" && !value.includes("##")) {
-            showWarn("⚠ ## is required as the collection name placeholder.");
-          } else {
-            hideWarn();
-          }
-        };
-
-        // Run on open so any saved invalid state is flagged immediately
-        validate(input.value);
-        if (input.value !== DEFAULT_SETTINGS.collectionsItemWrapper) resetBtn.style.display = "";
-
-        input.addEventListener("blur", () => validate(input.value));
-        input.addEventListener("focus", () => hideWarn());
-        input.addEventListener("change", async () => {
-          resetBtn.style.display = "";
-          this.plugin.settings.collectionsItemWrapper = input.value;
-          await this.plugin.saveSettings();
-        });
-
-        resetBtn.addEventListener("click", async () => {
-          input.value = DEFAULT_SETTINGS.collectionsItemWrapper;
-          hideWarn();
-          resetBtn.style.display = "none";
-          this.plugin.settings.collectionsItemWrapper = DEFAULT_SETTINGS.collectionsItemWrapper;
-          await this.plugin.saveSettings();
-        });
-      });
 
     // -- Allow overwrite + warning (kept together in one group) ----------------
     // Refs for imperative updates wired to the overwrite toggle
@@ -370,8 +297,6 @@ export class KoboSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })));
 
-    let replaceWithSettingEl: HTMLElement | null = null;
-
     // -- Author & Metadata Formatting ------------------------------------------
     new SettingGroup(containerEl)
       .setHeading("Author & Metadata Formatting")
@@ -434,97 +359,6 @@ export class KoboSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })));
 
-    // -- Chapter Title ---------------------------------------------------------
-    new SettingGroup(containerEl)
-      .setHeading("Chapter Title")
-      .addSetting((s) => s
-        .setName("Add spaces between letters and numbers")
-        .setDesc("Insert spaces at letter<->digit boundaries (e.g. ch5Intro -> ch 5 Intro)")
-        .addToggle((t) => t
-          .setValue(this.plugin.settings.chapterAddLetterNumberSpacing)
-          .onChange(async (v) => {
-            this.plugin.settings.chapterAddLetterNumberSpacing = v;
-            await this.plugin.saveSettings();
-          })))
-      .addSetting((s) => s
-        .setName("Strip leading zeros")
-        .setDesc("Remove leading zeros from numbers (e.g. 01 → 1).")
-        .addToggle((t) => t
-          .setValue(this.plugin.settings.chapterStripLeadingZeros)
-          .onChange(async (v) => {
-            this.plugin.settings.chapterStripLeadingZeros = v;
-            await this.plugin.saveSettings();
-          })))
-      .addSetting((s) => {
-        s.setName("Trim words from start")
-          .setDesc("Remove first N words from the chapter title (e.g. A Lopsided Arms Race -> Arms Race)")
-          .addText((t) => t
-            .setPlaceholder("0")
-            .setValue(this.plugin.settings.chapterTrimStartWords === 0 ? "" : String(this.plugin.settings.chapterTrimStartWords))
-            .onChange(async (v) => {
-              const n = parseInt(v, 10);
-              this.plugin.settings.chapterTrimStartWords = isNaN(n) || n < 0 ? 0 : n;
-              await this.plugin.saveSettings();
-            }));
-        s.controlEl.querySelector("input")!.type = "number";
-        s.controlEl.querySelector("input")!.min = "0";
-        s.controlEl.querySelector("input")!.style.width = "5em";
-      })
-      .addSetting((s) => {
-        s.setName("Trim words from end")
-          .setDesc("Remove last N words from the chapter title (e.g. A Lopsided Arms Race -> A Lopsided)")
-          .addText((t) => t
-            .setPlaceholder("0")
-            .setValue(this.plugin.settings.chapterTrimEndWords === 0 ? "" : String(this.plugin.settings.chapterTrimEndWords))
-            .onChange(async (v) => {
-              const n = parseInt(v, 10);
-              this.plugin.settings.chapterTrimEndWords = isNaN(n) || n < 0 ? 0 : n;
-              await this.plugin.saveSettings();
-            }));
-        s.controlEl.querySelector("input")!.type = "number";
-        s.controlEl.querySelector("input")!.min = "0";
-        s.controlEl.querySelector("input")!.style.width = "5em";
-      })
-      .addSetting((s) => s
-        .setName("Standardize chapter prefix")
-        .setDesc("Normalize 'ch' & 'chapter' prefixes (e.g. lotr ch 2 -> lotr chapter 2)")
-        .addDropdown((d) => d
-          .addOption("none", "Keep as-is")
-          .addOption("strip", "Strip prefix")
-          .addOption("Chapter", 'Standardize to "Chapter"')
-          .addOption("Ch", 'Standardize to "Ch"')
-          .setValue(this.plugin.settings.chapterPrefixNormalization)
-          .onChange(async (v) => {
-            this.plugin.settings.chapterPrefixNormalization = v as "none" | "strip" | "Chapter" | "Ch";
-            await this.plugin.saveSettings();
-          })))
-      .addSetting((s) => {
-        s.setName("Symbols to replace")
-          .setDesc("Each character in this string will be replaced. Example: ;,-")
-          .addText((t) => t
-            .setPlaceholder("e.g. ;,-")
-            .setValue(this.plugin.settings.chapterSymbolsToReplace)
-            .onChange(async (v) => {
-              this.plugin.settings.chapterSymbolsToReplace = v;
-              await this.plugin.saveSettings();
-              if (replaceWithSettingEl) setDisabled(replaceWithSettingEl, v.trim() === "");
-            }));
-        s.controlEl.querySelector("input")!.style.width = "8em";
-      })
-      .addSetting((s) => {
-        replaceWithSettingEl = s.settingEl;
-        s.setName("Replace with")
-          .setDesc("Replacement string (default: -). Supports multi-char (e.g.  - ). Clear to delete symbols entirely.")
-          .addText((t) => t
-            .setPlaceholder("(delete)")
-            .setValue(this.plugin.settings.chapterSymbolReplacement)
-            .onChange(async (v) => {
-              this.plugin.settings.chapterSymbolReplacement = v;
-              await this.plugin.saveSettings();
-            }));
-        s.controlEl.querySelector("input")!.style.width = "8em";
-      });
-    if (replaceWithSettingEl) setDisabled(replaceWithSettingEl, this.plugin.settings.chapterSymbolsToReplace.trim() === "");
 
     // -- Footer ----------------------------------------------------------------
     new SettingGroup(containerEl)
@@ -596,6 +430,192 @@ export class KoboSettingsTab extends PluginSettingTab {
             this.plugin.settings.appendHeadingOmitEmptyLines = v;
             await this.plugin.saveSettings();
           })));
+
+    // -- Advanced Formatting ---------------------------------------------------
+    new SettingGroup(containerEl).setHeading("Advanced Formatting");
+
+    // Chapter Title (collapsible, default closed)
+    collapsibleGroup(containerEl, "chapter-title", "Chapter Title", this.sectionOpenStates, (el) => {
+      let replaceWithSettingEl: HTMLElement | null = null;
+      new SettingGroup(el)
+        .addSetting((s) => s
+          .setName("Add spaces between letters and numbers")
+          .setDesc("Insert spaces at letter<->digit boundaries (e.g. ch5Intro -> ch 5 Intro)")
+          .addToggle((t) => t
+            .setValue(this.plugin.settings.chapterAddLetterNumberSpacing)
+            .onChange(async (v) => {
+              this.plugin.settings.chapterAddLetterNumberSpacing = v;
+              await this.plugin.saveSettings();
+            })))
+        .addSetting((s) => s
+          .setName("Strip leading zeros")
+          .setDesc("Remove leading zeros from numbers (e.g. 01 → 1).")
+          .addToggle((t) => t
+            .setValue(this.plugin.settings.chapterStripLeadingZeros)
+            .onChange(async (v) => {
+              this.plugin.settings.chapterStripLeadingZeros = v;
+              await this.plugin.saveSettings();
+            })))
+        .addSetting((s) => {
+          s.setName("Trim words from start")
+            .setDesc("Remove first N words from the chapter title (e.g. A Lopsided Arms Race -> Arms Race)")
+            .addText((t) => t
+              .setPlaceholder("0")
+              .setValue(this.plugin.settings.chapterTrimStartWords === 0 ? "" : String(this.plugin.settings.chapterTrimStartWords))
+              .onChange(async (v) => {
+                const n = parseInt(v, 10);
+                this.plugin.settings.chapterTrimStartWords = isNaN(n) || n < 0 ? 0 : n;
+                await this.plugin.saveSettings();
+              }));
+          s.controlEl.querySelector("input")!.type = "number";
+          s.controlEl.querySelector("input")!.min = "0";
+          s.controlEl.querySelector("input")!.style.width = "5em";
+        })
+        .addSetting((s) => {
+          s.setName("Trim words from end")
+            .setDesc("Remove last N words from the chapter title (e.g. A Lopsided Arms Race -> A Lopsided)")
+            .addText((t) => t
+              .setPlaceholder("0")
+              .setValue(this.plugin.settings.chapterTrimEndWords === 0 ? "" : String(this.plugin.settings.chapterTrimEndWords))
+              .onChange(async (v) => {
+                const n = parseInt(v, 10);
+                this.plugin.settings.chapterTrimEndWords = isNaN(n) || n < 0 ? 0 : n;
+                await this.plugin.saveSettings();
+              }));
+          s.controlEl.querySelector("input")!.type = "number";
+          s.controlEl.querySelector("input")!.min = "0";
+          s.controlEl.querySelector("input")!.style.width = "5em";
+        })
+        .addSetting((s) => s
+          .setName("Standardize chapter prefix")
+          .setDesc("Normalize 'ch' & 'chapter' prefixes (e.g. lotr ch 2 -> lotr chapter 2)")
+          .addDropdown((d) => d
+            .addOption("none", "Keep as-is")
+            .addOption("strip", "Strip prefix")
+            .addOption("Chapter", 'Standardize to "Chapter"')
+            .addOption("Ch", 'Standardize to "Ch"')
+            .setValue(this.plugin.settings.chapterPrefixNormalization)
+            .onChange(async (v) => {
+              this.plugin.settings.chapterPrefixNormalization = v as "none" | "strip" | "Chapter" | "Ch";
+              await this.plugin.saveSettings();
+            })))
+        .addSetting((s) => {
+          s.setName("Symbols to replace")
+            .setDesc("Each character in this string will be replaced. Example: ;,-")
+            .addText((t) => t
+              .setPlaceholder("e.g. ;,-")
+              .setValue(this.plugin.settings.chapterSymbolsToReplace)
+              .onChange(async (v) => {
+                this.plugin.settings.chapterSymbolsToReplace = v;
+                await this.plugin.saveSettings();
+                if (replaceWithSettingEl) setDisabled(replaceWithSettingEl, v.trim() === "");
+              }));
+          s.controlEl.querySelector("input")!.style.width = "8em";
+        })
+        .addSetting((s) => {
+          replaceWithSettingEl = s.settingEl;
+          s.setName("Replace with")
+            .setDesc("Replacement string (default: -). Supports multi-char (e.g.  - ). Clear to delete symbols entirely.")
+            .addText((t) => t
+              .setPlaceholder("(delete)")
+              .setValue(this.plugin.settings.chapterSymbolReplacement)
+              .onChange(async (v) => {
+                this.plugin.settings.chapterSymbolReplacement = v;
+                await this.plugin.saveSettings();
+              }));
+          s.controlEl.querySelector("input")!.style.width = "8em";
+        });
+      if (replaceWithSettingEl) setDisabled(replaceWithSettingEl, this.plugin.settings.chapterSymbolsToReplace.trim() === "");
+    });
+
+    // Collections (collapsible, default closed)
+    collapsibleGroup(containerEl, "collections", "Collections", this.sectionOpenStates, (el) => {
+      new SettingGroup(el)
+        .addSetting((s) => {
+          s.setName("Collections item wrapper")
+            .setDesc(
+              "Wraps each collection name when {{collections}} is used in templates. " +
+              "Use ## as a placeholder for the collection name. " +
+              "Leave empty for a plain comma list."
+            );
+
+          const input = s.controlEl.createEl("input", { type: "text" } as any);
+          input.placeholder = "e.g. [[##]]";
+          input.value = this.plugin.settings.collectionsItemWrapper;
+          input.style.width = "12em";
+
+          s.infoEl.style.flexShrink = "1";
+          s.controlEl.style.flexShrink = "0";
+
+          s.settingEl.style.flexWrap = "wrap";
+          const bottomRow = s.settingEl.createEl("div");
+          bottomRow.style.cssText =
+            "width:100%; display:flex; justify-content:space-between; align-items:center; margin-top:6px;";
+
+          const warn = bottomRow.createEl("span");
+          warn.style.cssText = "font-size:0.85em; color:var(--color-yellow); display:none;";
+
+          const resetBtn = bottomRow.createEl("button");
+          resetBtn.textContent = "Reset to default";
+          resetBtn.style.cssText = "font-size:0.82em; margin-left:auto; display:none;";
+
+          const showWarn = (msg: string) => {
+            warn.textContent = msg;
+            warn.style.display = "block";
+            input.style.outline = "1px solid var(--color-yellow)";
+            input.style.borderColor = "var(--color-yellow)";
+          };
+          const hideWarn = () => {
+            warn.style.display = "none";
+            input.style.outline = "";
+            input.style.borderColor = "";
+          };
+
+          const validate = (value: string) => {
+            if (value !== "" && value.trim() === "") {
+              showWarn("⚠ Invisible text: This wrapper is not empty!");
+            } else if (value.trim() !== "" && !value.includes("##")) {
+              showWarn("⚠ ## is required as the collection name placeholder.");
+            } else {
+              hideWarn();
+            }
+          };
+
+          validate(input.value);
+          if (input.value !== DEFAULT_SETTINGS.collectionsItemWrapper) resetBtn.style.display = "";
+
+          input.addEventListener("blur", () => validate(input.value));
+          input.addEventListener("focus", () => hideWarn());
+          input.addEventListener("change", async () => {
+            resetBtn.style.display = "";
+            this.plugin.settings.collectionsItemWrapper = input.value;
+            await this.plugin.saveSettings();
+          });
+
+          resetBtn.addEventListener("click", async () => {
+            input.value = DEFAULT_SETTINGS.collectionsItemWrapper;
+            hideWarn();
+            resetBtn.style.display = "none";
+            this.plugin.settings.collectionsItemWrapper = DEFAULT_SETTINGS.collectionsItemWrapper;
+            await this.plugin.saveSettings();
+          });
+        })
+        .addSetting((s) => {
+          s.setName("Collections separator")
+            .setDesc(
+              "Placed between each collection name — not added after the last. " +
+              "Default: \", \". Example: \" | \" gives [[Fiction]] | [[Non-Fiction]]."
+            )
+            .addText((t) => t
+              .setPlaceholder(", ")
+              .setValue(this.plugin.settings.collectionsItemSeparator)
+              .onChange(async (v) => {
+                this.plugin.settings.collectionsItemSeparator = v;
+                await this.plugin.saveSettings();
+              }));
+          s.controlEl.querySelector("input")!.style.width = "8em";
+        });
+    });
   }
 }
 
@@ -988,4 +1008,28 @@ class FolderSuggest extends AbstractInputSuggest<TFolder> {
     this.setValue(folder.path);
     this.close();
   }
+}
+
+/**
+ * Renders a collapsible <details>/<summary> section. Open state is stored in
+ * openStates by id and defaults to closed. buildFn receives the <details>
+ * element as its container for appending child settings.
+ */
+function collapsibleGroup(
+  containerEl: HTMLElement,
+  id: string,
+  heading: string,
+  openStates: Map<string, boolean>,
+  buildFn: (el: HTMLElement) => void
+): void {
+  const details = containerEl.createEl("details");
+  details.open = openStates.get(id) ?? false;
+  details.addEventListener("toggle", () => openStates.set(id, details.open));
+  const summary = details.createEl("summary");
+  summary.textContent = heading;
+  summary.style.cssText =
+    "cursor:pointer; font-weight:600; padding:8px 0 8px 2px; " +
+    "user-select:none; list-style:none; font-size:0.95em; " +
+    "color:var(--text-normal);";
+  buildFn(details);
 }
