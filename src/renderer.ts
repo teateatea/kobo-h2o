@@ -1,3 +1,4 @@
+import { moment } from "obsidian";
 import { KoboBook, KoboHighlight, KoboImporterSettings } from "./types";
 import { preprocessConditionals } from "./template-parser";
 
@@ -17,7 +18,7 @@ export function renderFilename(book: KoboBook, settings: KoboImporterSettings): 
 // -- Full book note ------------------------------------------------------------
 
 export function renderBookNote(book: KoboBook, settings: KoboImporterSettings, createdDate: string): string {
-  const importDate = isoDate(new Date());
+  const importDate = new Date().toISOString();
   const parts: string[] = [];
 
   const fm = renderFrontmatter(book, settings, importDate, createdDate);
@@ -49,7 +50,7 @@ function renderFrontmatter(book: KoboBook, settings: KoboImporterSettings, impor
 
   const vars = {
     ...bookVars(book, importDate, createdDate, settings),
-    percent_read: String(Math.max(0, Math.min(100, Number(book.percentRead) || 0))),
+    percent_read: formatPercent((Number(book.percentRead) || 0) / 100, settings),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
     isbn: book.isbn ?? "",
@@ -82,7 +83,7 @@ function renderNoteHeading(book: KoboBook, settings: KoboImporterSettings, impor
 
   const vars = {
     ...bookVars(book, importDate, createdDate, settings),
-    percent_read: String(Math.max(0, Math.min(100, Number(book.percentRead) || 0))),
+    percent_read: formatPercent((Number(book.percentRead) || 0) / 100, settings),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
     isbn: book.isbn ?? "",
@@ -167,8 +168,8 @@ export function renderHighlight(
     ...bookVars(book, importDate, cd, settings),
     highlight_text: normaliseHighlightText(h.text),
     chapter: formatChapter(h.chapter ?? "", settings),
-    date_highlighted: formatDate(h.dateCreated),
-    page_percent: h.chapterProgress > 0 ? `${Math.round(h.chapterProgress * 100)}%` : "",
+    date_highlighted: formatDate(h.dateCreated, settings),
+    page_percent: h.chapterProgress > 0 ? formatPercent(h.chapterProgress, settings) : "",
     highlight_number: String(index + 1),
     highlight_color: koboColorName(h.color),
     annotation: h.annotation
@@ -197,8 +198,8 @@ function renderAnnotation(
     ...bookVars(book, importDate, createdDate ?? importDate, settings),
     annotation_text: h.annotation,
     chapter: formatChapter(h.chapter ?? "", settings),
-    date_annotated: formatDate(h.dateCreated),
-    page_percent: h.chapterProgress > 0 ? `${Math.round(h.chapterProgress * 100)}%` : "",
+    date_annotated: formatDate(h.dateCreated, settings),
+    page_percent: h.chapterProgress > 0 ? formatPercent(h.chapterProgress, settings) : "",
   };
   return applyVarsMultiline(settings.annotationTemplate, vars, settings.annotationOmitEmptyLines).trim();
 }
@@ -211,7 +212,7 @@ function renderFooter(book: KoboBook, settings: KoboImporterSettings, importDate
 
   const vars = {
     ...bookVars(book, importDate, createdDate, settings),
-    percent_read: String(Math.max(0, Math.min(100, Number(book.percentRead) || 0))),
+    percent_read: formatPercent((Number(book.percentRead) || 0) / 100, settings),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
     isbn: book.isbn ?? "",
@@ -230,11 +231,11 @@ export function renderAppendBlock(
   settings: KoboImporterSettings,
   createdDate: string
 ): string {
-  const importDate = isoDate(new Date());
+  const importDate = new Date().toISOString();
 
   const headingVars = {
     ...bookVars(book, importDate, createdDate, settings),
-    percent_read: String(Math.max(0, Math.min(100, Number(book.percentRead) || 0))),
+    percent_read: formatPercent((Number(book.percentRead) || 0) / 100, settings),
     highlight_count: String(book.highlightCount),
     annotation_count: String(book.annotationCount),
     isbn: book.isbn ?? "",
@@ -280,20 +281,53 @@ export function extractExistingTexts(noteContent: string): Set<string> {
 
 function bookVars(book: KoboBook, importDate: string, createdDate: string, settings?: KoboImporterSettings): Record<string, string> {
   return {
-    title: book.title,
-    author: normalizeAuthor(book.author),
+    title: formatTitle(book.title, settings),
+    author: normalizeAuthor(book.author, settings),
     series: book.series ?? "",
     series_number: book.seriesNumber ?? "",
-    date_last_read: book.dateLastRead ? isoDate(new Date(book.dateLastRead)) : "",
-    date_last_imported: importDate,
-    date_note_created: createdDate,
+    date_last_read: book.dateLastRead ? formatDate(book.dateLastRead, settings) : "",
+    date_last_imported: formatDate(importDate, settings),
+    date_note_created: formatDate(createdDate, settings),
     collections: wrapCollections(book.shelves, settings?.collectionsItemWrapper ?? ""),
   };
 }
 
-function normalizeAuthor(raw: string | undefined): string {
+function normalizeAuthor(raw: string | undefined, settings?: KoboImporterSettings): string {
   if (!raw) return "";
-  return raw.replace(/;\s*/g, ", ").replace(/,\s+/g, ", ").trim();
+  const authors = raw.split(/;\s*/).map((a) => a.trim()).filter(Boolean);
+  const formatted = authors.map((a) => {
+    if (settings?.authorNameOrder === "first-last") {
+      const m = a.match(/^([^,]+),\s*(.+)$/);
+      if (m) a = `${m[2].trim()} ${m[1].trim()}`;
+    }
+    const wrapper = settings?.authorNameWrapper ?? "";
+    if (wrapper && wrapper.includes("##")) {
+      return wrapper.replace(/##/g, a);
+    }
+    return a;
+  });
+  return formatted.join(", ");
+}
+
+function formatPercent(value: number, settings?: KoboImporterSettings): string {
+  const pct = Math.round(value * 100);
+  switch (settings?.percentFormat) {
+    case "percent": return `${pct}%`;
+    case "decimal": return value.toFixed(2);
+    case "PCT":     return `${pct}PCT`;
+    case "pct":     return `${pct}pct`;
+    default:        return String(pct);  // "integer" (default)
+  }
+}
+
+function formatTitle(title: string, settings?: KoboImporterSettings): string {
+  switch (settings?.titleCaseFormat) {
+    case "title-case":
+      return title.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+    case "upper": return title.toUpperCase();
+    case "lower": return title.toLowerCase();
+    default: return title;
+  }
 }
 
 /**
@@ -386,8 +420,10 @@ function isoDate(d: Date): string {
   }
 }
 
-function formatDate(dateStr: string): string {
-  return isoDate(new Date(dateStr)) || dateStr;
+function formatDate(dateStr: string, settings?: KoboImporterSettings): string {
+  const fmt = settings?.dateFormat ?? "YYYY-MM-DD";
+  const m = moment(dateStr);
+  return m.isValid() ? m.format(fmt) : dateStr;
 }
 
 function fmEscape(s: string): string {

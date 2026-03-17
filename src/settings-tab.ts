@@ -1,6 +1,6 @@
 import { App, AbstractInputSuggest, PluginSettingTab, Setting, SettingGroup, TFolder } from "obsidian";
 import KoboPlugin from "./main";
-import { DEFAULT_SETTINGS } from "./types";
+import { DEFAULT_SETTINGS, KoboImporterSettings } from "./types";
 
 // WeakMap to store pill-updater functions keyed by the varRefRow's settingEl.
 // Replaces the fragile __updatePills expando + previousElementSibling traversal.
@@ -371,6 +371,68 @@ export class KoboSettingsTab extends PluginSettingTab {
           })));
 
     let replaceWithSettingEl: HTMLElement | null = null;
+
+    // -- Author & Metadata Formatting ------------------------------------------
+    new SettingGroup(containerEl)
+      .setHeading("Author & Metadata Formatting")
+      .addSetting((s) => s
+        .setName("Date format")
+        .setDesc("Moment.js format string for all date fields. See momentjs.com/docs/#/displaying/format/ for tokens. Default: YYYY-MM-DD")
+        .addText((t) => t
+          .setPlaceholder("YYYY-MM-DD")
+          .setValue(this.plugin.settings.dateFormat)
+          .onChange(async (v) => {
+            this.plugin.settings.dateFormat = v || "YYYY-MM-DD";
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => s
+        .setName("Author name order")
+        .setDesc("Flip 'Last, First' to 'First Last' for each author. Only applies when the name is stored in 'Last, First' format.")
+        .addDropdown((d) => d
+          .addOption("as-is",      "Keep as-is (default)")
+          .addOption("first-last", "First Last")
+          .setValue(this.plugin.settings.authorNameOrder)
+          .onChange(async (v) => {
+            this.plugin.settings.authorNameOrder = v as "as-is" | "first-last";
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => s
+        .setName("Author name wrapper")
+        .setDesc("Wrap each author with a template. Use ## as placeholder (e.g. [[##]] produces [[J.R.R. Tolkien]]).")
+        .addText((t) => t
+          .setPlaceholder("e.g. [[##]]")
+          .setValue(this.plugin.settings.authorNameWrapper)
+          .onChange(async (v) => {
+            this.plugin.settings.authorNameWrapper = v;
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => s
+        .setName("Title case format")
+        .setDesc("Apply case transformation to the {{title}} variable.")
+        .addDropdown((d) => d
+          .addOption("as-is",      "Keep as-is (default)")
+          .addOption("title-case", "Title Case")
+          .addOption("upper",      "UPPER CASE")
+          .addOption("lower",      "lower case")
+          .setValue(this.plugin.settings.titleCaseFormat)
+          .onChange(async (v) => {
+            this.plugin.settings.titleCaseFormat = v as KoboImporterSettings["titleCaseFormat"];
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => s
+        .setName("Percent format")
+        .setDesc("Format used for {{percent_read}} and {{page_percent}}.")
+        .addDropdown((d) => d
+          .addOption("integer", "75 (default)")
+          .addOption("percent", "75%")
+          .addOption("decimal", "0.75")
+          .addOption("PCT",     "75PCT")
+          .addOption("pct",     "75pct")
+          .setValue(this.plugin.settings.percentFormat)
+          .onChange(async (v) => {
+            this.plugin.settings.percentFormat = v as KoboImporterSettings["percentFormat"];
+            await this.plugin.saveSettings();
+          })));
 
     // -- Chapter Title ---------------------------------------------------------
     new SettingGroup(containerEl)

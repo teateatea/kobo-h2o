@@ -14,15 +14,6 @@ import { KoboSettingsTab } from "./settings-tab";
 const fs = require("fs") as typeof import("fs");
 const path = require("path") as typeof import("path");
 
-function isoDate(d: Date): string {
-  try {
-    if (isNaN(d.getTime())) return "";
-    return d.toISOString().split("T")[0];
-  } catch {
-    return "";
-  }
-}
-
 export default class KoboPlugin extends Plugin {
   settings: KoboImporterSettings;
 
@@ -221,7 +212,7 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
       const existing = this.app.vault.getAbstractFileByPath(filepath) as TFile | null;
 
       if (existing) {
-        const createdDate = isoDate(new Date(existing.stat.ctime));
+        const createdDate = new Date(existing.stat.ctime).toISOString();
         if (this.settings.allowOverwrite) {
           await this.app.vault.modify(existing, renderBookNote(book, this.settings, createdDate));
           updated++;
@@ -242,7 +233,7 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
           }
         }
       } else {
-        const createdDate = isoDate(new Date());
+        const createdDate = new Date().toISOString();
         await this.app.vault.create(filepath, renderBookNote(book, this.settings, createdDate));
         created++;
       }
