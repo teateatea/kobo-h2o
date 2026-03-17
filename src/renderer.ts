@@ -288,7 +288,7 @@ function bookVars(book: KoboBook, importDate: string, createdDate: string, setti
     date_last_read: book.dateLastRead ? formatDate(book.dateLastRead, settings) : "",
     date_last_imported: formatDate(importDate, settings),
     date_note_created: formatDate(createdDate, settings),
-    collections: wrapCollections(book.shelves, settings?.collectionsItemWrapper ?? ""),
+    collections: wrapCollections(book.shelves, settings?.collectionsItemWrapper ?? "", settings?.collectionsItemSeparator ?? ", "),
   };
 }
 
@@ -334,10 +334,10 @@ function formatTitle(title: string, settings?: KoboImporterSettings): string {
  * Renders a collections list as a comma-separated string, applying the user's
  * item wrapper if set. e.g. wrapper "[[##]]" → "[[Fiction]], [[Non-Fiction]]"
  */
-function wrapCollections(shelves: string[], wrapper: string): string {
+function wrapCollections(shelves: string[], wrapper: string, separator = ", "): string {
   if (!shelves.length) return "";
-  if (!wrapper || !wrapper.includes("##")) return shelves.join(", ");
-  return shelves.map((s) => wrapper.replace(/##/g, s)).join(", ");
+  if (!wrapper || !wrapper.includes("##")) return shelves.join(separator);
+  return shelves.map((s) => wrapper.replace(/##/g, s)).join(separator);
 }
 
 // Cache compiled regexes so we don't recompile on every highlight × variable.

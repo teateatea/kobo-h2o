@@ -35,6 +35,7 @@ export interface KoboImporterSettings {
   minHighlightWords: number;
   allowOverwrite: boolean;
   collectionsItemWrapper: string;
+  collectionsItemSeparator: string;
 
   // Format — Card 1: Note name
   noteTitleTemplate: string;
@@ -92,6 +93,7 @@ export const DEFAULT_SETTINGS: KoboImporterSettings = {
   minHighlightWords: 0,
   allowOverwrite: false,
   collectionsItemWrapper: "",
+  collectionsItemSeparator: ", ",
 
   // Format — Card 1: Note name
   noteTitleTemplate: "{{title}} ({{author}})",
