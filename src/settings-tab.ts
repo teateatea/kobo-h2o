@@ -301,19 +301,13 @@ export class KoboSettingsTab extends PluginSettingTab {
     new SettingGroup(containerEl)
       .setHeading("Author & Metadata Formatting")
       .addSetting((s) => {
-        const fmt = this.plugin.settings.dateFormat || "YYYY-MM-DD";
         const dateDesc = document.createDocumentFragment();
-        dateDesc.createEl("span", { text: "Moment.js format string for all date fields. " });
+        dateDesc.createEl("span", { text: "Format string for all date fields. " });
         const docsLink = dateDesc.createEl("a", {
-          text: "See format tokens.",
+          text: "See Moment.js for details.",
           href: "https://momentjs.com/docs/#/displaying/format/",
         });
         docsLink.target = "_blank";
-        dateDesc.createEl("br");
-        const previewEl = dateDesc.createEl("span", {
-          text: `Preview: ${moment().format(fmt)}`,
-        });
-        previewEl.style.color = "var(--text-muted)";
         s.setName("Date format")
          .setDesc(dateDesc)
          .addText((t) => t
@@ -324,6 +318,13 @@ export class KoboSettingsTab extends PluginSettingTab {
              previewEl.textContent = `Preview: ${moment().format(this.plugin.settings.dateFormat)}`;
              await this.plugin.saveSettings();
            }));
+        const fmt = this.plugin.settings.dateFormat || "YYYY-MM-DD";
+        const previewEl = s.controlEl.createEl("div", {
+          text: `Preview: ${moment().format(fmt)}`,
+        });
+        previewEl.style.color = "var(--text-muted)";
+        previewEl.style.fontSize = "var(--font-smaller)";
+        previewEl.style.marginTop = "4px";
       })
       .addSetting((s) => s
         .setName("Author name order")
