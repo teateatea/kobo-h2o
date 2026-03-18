@@ -633,6 +633,51 @@ export class KoboSettingsTab extends PluginSettingTab {
           s.controlEl.querySelector("input")!.style.width = "8em";
         });
     });
+
+    // Highlight Color (collapsible, default closed)
+    collapsibleGroup(containerEl, "highlight-color", "Highlight Color", this.sectionOpenStates, (el) => {
+      new SettingGroup(el)
+        .addSetting((s) => s
+          .setName("Yellow highlights")
+          .setDesc('Replaces "yellow" when {{highlight_color}} is used in templates. Default: yellow')
+          .addText((t) => t
+            .setPlaceholder("yellow")
+            .setValue(this.plugin.settings.highlightColorMap["yellow"] ?? "yellow")
+            .onChange(async (v) => {
+              this.plugin.settings.highlightColorMap["yellow"] = v || "yellow";
+              await this.plugin.saveSettings();
+            })))
+        .addSetting((s) => s
+          .setName("Red highlights")
+          .setDesc('Replaces "red" when {{highlight_color}} is used in templates. Default: red')
+          .addText((t) => t
+            .setPlaceholder("red")
+            .setValue(this.plugin.settings.highlightColorMap["red"] ?? "red")
+            .onChange(async (v) => {
+              this.plugin.settings.highlightColorMap["red"] = v || "red";
+              await this.plugin.saveSettings();
+            })))
+        .addSetting((s) => s
+          .setName("Blue highlights")
+          .setDesc('Replaces "blue" when {{highlight_color}} is used in templates. Default: blue')
+          .addText((t) => t
+            .setPlaceholder("blue")
+            .setValue(this.plugin.settings.highlightColorMap["blue"] ?? "blue")
+            .onChange(async (v) => {
+              this.plugin.settings.highlightColorMap["blue"] = v || "blue";
+              await this.plugin.saveSettings();
+            })))
+        .addSetting((s) => s
+          .setName("Green highlights")
+          .setDesc('Replaces "green" when {{highlight_color}} is used in templates. Default: green')
+          .addText((t) => t
+            .setPlaceholder("green")
+            .setValue(this.plugin.settings.highlightColorMap["green"] ?? "green")
+            .onChange(async (v) => {
+              this.plugin.settings.highlightColorMap["green"] = v || "green";
+              await this.plugin.saveSettings();
+            })));
+    });
   }
 }
 

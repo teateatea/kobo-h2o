@@ -145,14 +145,19 @@ function formatChapter(chapter: string, settings: KoboImporterSettings): string 
 
 // -- Single highlight ----------------------------------------------------------
 
-function koboColorName(color: number | undefined): string {
+function koboColorName(color: number | undefined, settings?: KoboImporterSettings): string {
+  let raw: string;
   switch (color) {
-    case 0: case undefined: return "yellow";
-    case 1: return "red";
-    case 2: return "blue";
-    case 3: return "green";
-    default: return "grey";
+    case 0: case undefined: raw = "yellow"; break;
+    case 1: raw = "red"; break;
+    case 2: raw = "blue"; break;
+    case 3: raw = "green"; break;
+    default: raw = "yellow";
   }
+  if (settings?.highlightColorMap) {
+    return settings.highlightColorMap[raw] ?? raw;
+  }
+  return raw;
 }
 
 export function renderHighlight(
@@ -171,7 +176,7 @@ export function renderHighlight(
     date_highlighted: formatDate(h.dateCreated, settings),
     page_percent: h.chapterProgress > 0 ? formatPercent(h.chapterProgress, settings) : "",
     highlight_number: String(index + 1),
-    highlight_color: koboColorName(h.color),
+    highlight_color: koboColorName(h.color, settings),
     annotation: h.annotation
       ? renderAnnotation(h, book, settings, importDate, cd)
       : "",
