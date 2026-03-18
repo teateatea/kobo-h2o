@@ -83,8 +83,10 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
       if (!file) return;
       try {
         const buffer = await file.arrayBuffer();
-        const books = await parseSqliteFile(buffer, this.pluginDir());
-        await this.finishImport(books);
+        const allBooks = await parseSqliteFile(buffer, this.pluginDir());
+        const selected = await this.selectBooks(allBooks);
+        if (selected === null) return;
+        await this.finishImport(selected);
       } catch (err) {
         console.error("[KoboH2O]", err);
         new Notice(`Import failed: ${err.message}`, 8000);
@@ -108,7 +110,9 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
         const books = ext === "csv" || ext === "tsv"
           ? parseCsvFile(text, file.name)
           : parseTxtFile(text, file.name);
-        await this.finishImport(books);
+        const selected = await this.selectBooks(books);
+        if (selected === null) return;
+        await this.finishImport(selected);
       } catch (err) {
         console.error("[KoboH2O]", err);
         new Notice(`Import failed: ${err.message}`, 8000);
@@ -151,8 +155,10 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
     try {
       const buf = fs.readFileSync(sqlitePath);
       const buffer = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
-      const books = await parseSqliteFile(buffer, this.pluginDir());
-      await this.finishImport(books);
+      const allBooks = await parseSqliteFile(buffer, this.pluginDir());
+      const selected = await this.selectBooks(allBooks);
+      if (selected === null) return;
+      await this.finishImport(selected);
     } catch (err) {
       console.error("[KoboH2O]", err);
       new Notice(`Import failed: ${err.message}`, 8000);
@@ -175,6 +181,12 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
       `Done. ${created} note${created !== 1 ? "s" : ""} created, ${updated} updated.`,
       5000
     );
+  }
+
+  private selectBooks(books: KoboBook[]): Promise<KoboBook[] | null> {
+    return new Promise<KoboBook[] | null>((resolve) => {
+      new BookSelectionModal(this.app, books, resolve).open();
+    });
   }
 
   private applyFilters(books: KoboBook[]): KoboBook[] {
@@ -209,7 +221,7 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
     for (const book of books) {
       const filename = renderFilename(book, this.settings);
       const filepath = normalizePath(`${this.settings.outputFolder}/${filename}.md`);
-      const existing = this.app.vault.getAbstractFileByPath(filepath) as TFile | null;
+      const existing = this.getFileCaseInsensitive(filepath);
 
       if (existing) {
         const createdDate = new Date(existing.stat.ctime).toISOString();
@@ -240,6 +252,13 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
     }
 
     return { created, updated };
+  }
+
+  private getFileCaseInsensitive(filepath: string): TFile | null {
+    const lower = filepath.toLowerCase();
+    return this.app.vault.getFiles().find(
+      (f) => f.path.toLowerCase() === lower
+    ) ?? null;
   }
 
   private async ensureFolder(folder: string) {
@@ -300,4 +319,90 @@ class OverwriteConfirmModal extends Modal {
   }
 
   onClose() { this.contentEl.empty(); }
+}
+
+// -- Book selection modal ------------------------------------------------------
+
+class BookSelectionModal extends Modal {
+  private checked: Set<number>;
+  private resolved = false;
+
+  constructor(
+    app: App,
+    private books: KoboBook[],
+    private resolve: (result: KoboBook[] | null) => void,
+  ) {
+    super(app);
+    this.checked = new Set(books.map((_, i) => i));
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.createEl("h2", { text: "Select books to import" });
+
+    const hint = contentEl.createEl("p", {
+      text: `${this.books.length} book${this.books.length !== 1 ? "s" : ""} found. Uncheck any you want to skip.`,
+    });
+    hint.style.marginBottom = "12px";
+
+    // Select all / none controls
+    const controls = contentEl.createDiv({ attr: { style: "display:flex;gap:12px;margin-bottom:8px" } });
+    const allBtn = controls.createEl("button", { text: "Select all" });
+    allBtn.onclick = () => {
+      this.books.forEach((_, i) => this.checked.add(i));
+      checkboxes.forEach((cb) => (cb.checked = true));
+    };
+    const noneBtn = controls.createEl("button", { text: "Select none" });
+    noneBtn.onclick = () => {
+      this.checked.clear();
+      checkboxes.forEach((cb) => (cb.checked = false));
+    };
+
+    // Scrollable book list
+    const list = contentEl.createDiv({
+      attr: { style: "max-height:400px;overflow-y:auto;border:1px solid var(--background-modifier-border);border-radius:4px;padding:8px;margin-bottom:16px" },
+    });
+    const checkboxes: HTMLInputElement[] = [];
+
+    this.books.forEach((book, i) => {
+      const row = list.createDiv({ attr: { style: "display:flex;align-items:center;gap:8px;padding:4px 0" } });
+      const cb = row.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+      cb.checked = true;
+      cb.onchange = () => {
+        if (cb.checked) this.checked.add(i);
+        else this.checked.delete(i);
+      };
+      checkboxes.push(cb);
+
+      const label = row.createEl("label");
+      const title = book.title;
+      const author = book.author ? ` - ${book.author}` : "";
+      const count = ` (${book.highlightCount} highlight${book.highlightCount !== 1 ? "s" : ""})`;
+      label.setText(`${title}${author}${count}`);
+      label.style.cursor = "pointer";
+      label.onclick = () => { cb.checked = !cb.checked; cb.onchange?.(new Event("change")); };
+    });
+
+    // Action buttons
+    const row = contentEl.createDiv({ attr: { style: "display:flex;gap:12px" } });
+    const cancelBtn = row.createEl("button", { text: "Cancel", attr: { style: "flex:1;padding:10px" } });
+    cancelBtn.onclick = () => { this.resolved = true; this.close(); this.resolve(null); };
+
+    const importBtn = row.createEl("button", {
+      text: "Import selected",
+      cls: "mod-cta",
+      attr: { style: "flex:1;padding:10px" },
+    });
+    importBtn.onclick = () => {
+      const selected = this.books.filter((_, i) => this.checked.has(i));
+      this.resolved = true;
+      this.close();
+      this.resolve(selected);
+    };
+  }
+
+  onClose() {
+    this.contentEl.empty();
+    if (!this.resolved) { this.resolved = true; this.resolve(null); }
+  }
 }

@@ -1,4 +1,4 @@
-import { App, AbstractInputSuggest, PluginSettingTab, Setting, SettingGroup, TFolder } from "obsidian";
+import { App, AbstractInputSuggest, moment, PluginSettingTab, Setting, SettingGroup, TFolder } from "obsidian";
 import KoboPlugin from "./main";
 import { DEFAULT_SETTINGS, KoboImporterSettings } from "./types";
 
@@ -300,16 +300,31 @@ export class KoboSettingsTab extends PluginSettingTab {
     // -- Author & Metadata Formatting ------------------------------------------
     new SettingGroup(containerEl)
       .setHeading("Author & Metadata Formatting")
-      .addSetting((s) => s
-        .setName("Date format")
-        .setDesc("Moment.js format string for all date fields. See momentjs.com/docs/#/displaying/format/ for tokens. Default: YYYY-MM-DD")
-        .addText((t) => t
-          .setPlaceholder("YYYY-MM-DD")
-          .setValue(this.plugin.settings.dateFormat)
-          .onChange(async (v) => {
-            this.plugin.settings.dateFormat = v || "YYYY-MM-DD";
-            await this.plugin.saveSettings();
-          })))
+      .addSetting((s) => {
+        const fmt = this.plugin.settings.dateFormat || "YYYY-MM-DD";
+        const dateDesc = document.createDocumentFragment();
+        dateDesc.createEl("span", { text: "Moment.js format string for all date fields. " });
+        const docsLink = dateDesc.createEl("a", {
+          text: "See format tokens.",
+          href: "https://momentjs.com/docs/#/displaying/format/",
+        });
+        docsLink.target = "_blank";
+        dateDesc.createEl("br");
+        const previewEl = dateDesc.createEl("span", {
+          text: `Preview: ${moment().format(fmt)}`,
+        });
+        previewEl.style.color = "var(--text-muted)";
+        s.setName("Date format")
+         .setDesc(dateDesc)
+         .addText((t) => t
+           .setPlaceholder("YYYY-MM-DD")
+           .setValue(this.plugin.settings.dateFormat)
+           .onChange(async (v) => {
+             this.plugin.settings.dateFormat = v || "YYYY-MM-DD";
+             previewEl.textContent = `Preview: ${moment().format(this.plugin.settings.dateFormat)}`;
+             await this.plugin.saveSettings();
+           }));
+      })
       .addSetting((s) => s
         .setName("Author name order")
         .setDesc("Flip 'Last, First' to 'First Last' for each author. Only applies when the name is stored in 'Last, First' format.")
