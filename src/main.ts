@@ -67,8 +67,8 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
       new Notice("Kobo device not found. Use 'Import from SQLite file' to locate it manually.", 7000);
       return;
     }
+    new Notice("Kobo found!");
     if (!await this.confirmIfOverwrite()) return;
-    new Notice("Found Kobo - importing...");
     await this.importSqliteFromPath(sqlitePath);
   }
 
@@ -158,6 +158,7 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
       const allBooks = await parseSqliteFile(buffer, this.pluginDir());
       const selected = await this.selectBooks(allBooks);
       if (selected === null) return;
+      new Notice("Importing...");
       await this.finishImport(selected);
     } catch (err) {
       console.error("[KoboH2O]", err);
