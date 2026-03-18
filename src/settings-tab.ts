@@ -328,13 +328,14 @@ export class KoboSettingsTab extends PluginSettingTab {
       })
       .addSetting((s) => s
         .setName("Author name order")
-        .setDesc("Flip 'Last, First' to 'First Last' for each author. Only applies when the name is stored in 'Last, First' format.")
+        .setDesc("Change the order of author names. 'First Last' converts 'Tolkien, J.R.R.' to 'J.R.R. Tolkien'. 'Last, First' does the reverse.")
         .addDropdown((d) => d
-          .addOption("as-is",      "Keep as-is (default)")
+          .addOption("as-is",      "Don't change order (default)")
           .addOption("first-last", "First Last")
+          .addOption("last-first", "Last, First")
           .setValue(this.plugin.settings.authorNameOrder)
           .onChange(async (v) => {
-            this.plugin.settings.authorNameOrder = v as "as-is" | "first-last";
+            this.plugin.settings.authorNameOrder = v as "as-is" | "first-last" | "last-first";
             await this.plugin.saveSettings();
           })))
       .addSetting((s) => s
@@ -349,7 +350,7 @@ export class KoboSettingsTab extends PluginSettingTab {
           })))
       .addSetting((s) => s
         .setName("Title case format")
-        .setDesc("Apply case transformation to the {{title}} variable.")
+        .setDesc("Apply case transformation to the {{title}} variable only. Does not affect author names.")
         .addDropdown((d) => d
           .addOption("as-is",      "Keep as-is (default)")
           .addOption("title-case", "Title Case")
