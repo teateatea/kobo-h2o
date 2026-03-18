@@ -72,7 +72,7 @@ export interface KoboImporterSettings {
 
   // Author & Metadata Formatting
   dateFormat: string;
-  authorNameOrder: "as-is" | "first-last";
+  authorNameOrder: "as-is" | "first-last" | "last-first";
   authorNameWrapper: string;
   titleCaseFormat: "as-is" | "title-case" | "upper" | "lower";
   percentFormat: "decimal" | "integer" | "percent" | "PCT" | "pct";
