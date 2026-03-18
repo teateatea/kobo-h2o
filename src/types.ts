@@ -85,6 +85,9 @@ export interface KoboImporterSettings {
   chapterPrefixNormalization: "none" | "strip" | "Chapter" | "Ch";
   chapterSymbolsToReplace: string;
   chapterSymbolReplacement: string;
+
+  // Highlight Color Mapping
+  highlightColorMap: Record<string, string>;
 }
 
 export const DEFAULT_SETTINGS: KoboImporterSettings = {
@@ -178,6 +181,9 @@ export const DEFAULT_SETTINGS: KoboImporterSettings = {
   chapterPrefixNormalization: "none",
   chapterSymbolsToReplace: "",
   chapterSymbolReplacement: "-",
+
+  // Highlight Color Mapping
+  highlightColorMap: { yellow: "yellow", red: "red", blue: "blue", green: "green" },
 };
 
 
