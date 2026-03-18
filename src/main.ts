@@ -67,7 +67,9 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
       new Notice("Kobo device not found. Use 'Import from SQLite file' to locate it manually.", 7000);
       return;
     }
-    new Notice("Kobo found!");
+    new Notice("Kobo device detected.", 7000);
+    const deviceName = this.deviceNameFromPath(sqlitePath);
+    setTimeout(() => new Notice(`${deviceName} found!`, 9000), 500);
     if (!await this.confirmIfOverwrite()) return;
     await this.importSqliteFromPath(sqlitePath);
   }
@@ -149,6 +151,26 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
     }
 
     return null;
+  }
+
+  private deviceNameFromPath(sqlitePath: string): string {
+    // Windows: sqlitePath = "D:\\.kobo\\KoboReader.sqlite"
+    //   -> drive letter "D:"
+    const parsed = path.parse(sqlitePath);
+    const root = parsed.root; // e.g. "D:\\" or "/"
+    if (root && root !== "/") {
+      // Windows - return the drive letter (e.g. "D:")
+      return root.replace(/[\\\/]+$/, "");
+    }
+    // macOS/Linux: sqlitePath = "/Volumes/KOBOeReader/.kobo/KoboReader.sqlite"
+    //   -> split on separator, find the segment just before ".kobo"
+    const parts = sqlitePath.split(path.sep);
+    const koboIdx = parts.indexOf(".kobo");
+    if (koboIdx > 0) {
+      return parts[koboIdx - 1];
+    }
+    // Fallback
+    return "Kobo";
   }
 
   private async importSqliteFromPath(sqlitePath: string) {
