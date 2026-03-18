@@ -249,6 +249,9 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
       if (existing) {
         const createdDate = new Date(existing.stat.ctime).toISOString();
         if (this.settings.allowOverwrite) {
+          if (existing.path !== filepath) {
+            await this.app.vault.rename(existing, filepath);
+          }
           await this.app.vault.modify(existing, renderBookNote(book, this.settings, createdDate));
           updated++;
         } else {
