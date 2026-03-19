@@ -11,6 +11,14 @@ export interface KoboHighlight {
   color?: number;
 }
 
+export interface KoboWord {
+  text: string;
+  bookTitle?: string;
+  bookAuthor?: string;
+  language?: string;   // e.g. "en" (DictSuffix with leading "-" stripped)
+  dateCreated: string; // ISO string
+}
+
 export interface KoboBook {
   title: string;
   author?: string;
@@ -88,6 +96,16 @@ export interface KoboImporterSettings {
 
   // Highlight Color Mapping
   highlightColorMap: Record<string, string>;
+
+  // General import toggles
+  importHighlights: boolean;
+  importAnnotations: boolean;
+  importMyWords: boolean;
+
+  // My Words formatting
+  myWordsNoteTitle: string;
+  myWordsTemplate: string;
+  myWordsOmitEmptyLines: boolean;
 }
 
 export const DEFAULT_SETTINGS: KoboImporterSettings = {
@@ -184,6 +202,14 @@ export const DEFAULT_SETTINGS: KoboImporterSettings = {
 
   // Highlight Color Mapping
   highlightColorMap: { yellow: "yellow", red: "red", blue: "blue", green: "green" },
+
+  importHighlights: true,
+  importAnnotations: true,
+  importMyWords: true,
+
+  myWordsNoteTitle: "My Words (Kobo)",
+  myWordsTemplate: "**{{word}}** - *{{title}}* ({{date_added}})",
+  myWordsOmitEmptyLines: true,
 };
 
 

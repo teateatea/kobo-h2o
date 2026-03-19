@@ -1,5 +1,5 @@
 import { moment } from "obsidian";
-import { KoboBook, KoboHighlight, KoboImporterSettings } from "./types";
+import { KoboBook, KoboHighlight, KoboWord, KoboImporterSettings } from "./types";
 import { preprocessConditionals } from "./template-parser";
 
 // -- Note title / filename -----------------------------------------------------
@@ -270,6 +270,62 @@ export function renderAppendBlock(
   }
 
   return lines.join("\n");
+}
+
+export function renderWord(
+  word: KoboWord,
+  settings: KoboImporterSettings,
+): string {
+  const vars: Record<string, string> = {
+    word: word.text,
+    title: word.bookTitle ?? "",
+    author: word.bookAuthor ?? "",
+    language: word.language ?? "",
+    date_added: formatDate(word.dateCreated, settings),
+  };
+  const rendered = applyVars(settings.myWordsTemplate, vars);
+  return settings.myWordsOmitEmptyLines
+    ? rendered.split("\n").filter((l) => l.trim()).join("\n")
+    : rendered;
+}
+
+export function renderWordListNote(
+  words: KoboWord[],
+  settings: KoboImporterSettings,
+): string {
+  // Store max DateCreated (Kobo-clock time) so dedup comparisons stay in Kobo-clock domain.
+  // This means a consistently offset Kobo clock cancels out correctly on reimport.
+  const maxDate = words.reduce((m, w) => w.dateCreated > m ? w.dateCreated : m, "");
+  const parts: string[] = [
+    "---",
+    `date_imported: ${maxDate}`,
+    "---",
+    "",
+    `# ${settings.myWordsNoteTitle}`,
+    "",
+    `${words.length} word${words.length !== 1 ? "s" : ""}`,
+    "",
+  ];
+  for (const w of words) {
+    parts.push(renderWord(w, settings));
+  }
+  return parts.join("\n");
+}
+
+export function renderWordListAppend(
+  newWords: KoboWord[],
+  settings: KoboImporterSettings,
+): string {
+  const importDate = isoDate(new Date());
+  const parts = [
+    "",
+    `*${newWords.length} new word${newWords.length !== 1 ? "s" : ""} - ${importDate}*`,
+    "",
+  ];
+  for (const w of newWords) {
+    parts.push(renderWord(w, settings));
+  }
+  return parts.join("\n");
 }
 
 export function extractExistingTexts(noteContent: string): Set<string> {

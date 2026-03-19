@@ -1,12 +1,15 @@
 import { Notice, Plugin, TFile, normalizePath, Modal, App } from "obsidian";
-import { KoboBook, KoboImporterSettings, DEFAULT_SETTINGS } from "./types";
+import { KoboBook, KoboWord, KoboImporterSettings, DEFAULT_SETTINGS } from "./types";
 import { parseSqliteFile, clearSqlJsCache } from "./sqlite-parser";
+import type { ParseResult } from "./sqlite-parser";
 import { parseTxtFile, parseCsvFile } from "./text-parser";
 import {
   renderBookNote,
   renderFilename,
   renderAppendBlock,
   extractExistingTexts,
+  renderWordListNote,
+  renderWordListAppend,
 } from "./renderer";
 import { KoboSettingsTab } from "./settings-tab";
 
@@ -85,10 +88,10 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
       if (!file) return;
       try {
         const buffer = await file.arrayBuffer();
-        const allBooks = await parseSqliteFile(buffer, this.pluginDir());
-        const selected = await this.selectBooks(allBooks);
-        if (selected === null) return;
-        await this.finishImport(selected);
+        const { books, words } = await parseSqliteFile(buffer, this.pluginDir());
+        const result = await this.selectBooks(books, words);
+        if (result === null) return;
+        await this.finishImport(result.books, result.words, result.importMyWords);
       } catch (err) {
         console.error("[KoboH2O]", err);
         new Notice(`Import failed: ${err.message}`, 8000);
@@ -112,9 +115,9 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
         const books = ext === "csv" || ext === "tsv"
           ? parseCsvFile(text, file.name)
           : parseTxtFile(text, file.name);
-        const selected = await this.selectBooks(books);
-        if (selected === null) return;
-        await this.finishImport(selected);
+        const result = await this.selectBooks(books, []);
+        if (result === null) return;
+        await this.finishImport(result.books, [], false);
       } catch (err) {
         console.error("[KoboH2O]", err);
         new Notice(`Import failed: ${err.message}`, 8000);
@@ -177,11 +180,11 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
     try {
       const buf = fs.readFileSync(sqlitePath);
       const buffer = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
-      const allBooks = await parseSqliteFile(buffer, this.pluginDir());
-      const selected = await this.selectBooks(allBooks);
-      if (selected === null) return;
+      const { books, words } = await parseSqliteFile(buffer, this.pluginDir());
+      const result = await this.selectBooks(books, words);
+      if (result === null) return;
       new Notice("Importing...");
-      await this.finishImport(selected);
+      await this.finishImport(result.books, result.words, result.importMyWords);
     } catch (err) {
       console.error("[KoboH2O]", err);
       new Notice(`Import failed: ${err.message}`, 8000);
@@ -190,25 +193,33 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
 
   // -- Core import logic -----------------------------------------------------
 
-  private async finishImport(books: KoboBook[]) {
+  private async finishImport(books: KoboBook[], words: KoboWord[], importMyWords: boolean) {
     books = this.applyFilters(books);
 
-    if (books.length === 0) {
+    if (books.length === 0 && !(importMyWords && words.length > 0)) {
       new Notice("No highlights found.");
       return;
     }
 
     const { created, updated } = await this.writeBooks(books);
 
+    let wordsAdded = 0;
+    if (importMyWords && words.length > 0) {
+      wordsAdded = await this.writeWordListNote(words);
+    }
+
     new Notice(
-      `Done. ${created} note${created !== 1 ? "s" : ""} created, ${updated} updated.`,
+      `Done. ${created} note${created !== 1 ? "s" : ""} created, ${updated} updated${wordsAdded > 0 ? `, ${wordsAdded} word${wordsAdded !== 1 ? "s" : ""} added to My Words` : ""}.`,
       5000
     );
   }
 
-  private selectBooks(books: KoboBook[]): Promise<KoboBook[] | null> {
-    return new Promise<KoboBook[] | null>((resolve) => {
-      new BookSelectionModal(this.app, books, resolve).open();
+  private selectBooks(
+    books: KoboBook[],
+    words: KoboWord[],
+  ): Promise<{ books: KoboBook[]; words: KoboWord[]; importMyWords: boolean } | null> {
+    return new Promise((resolve) => {
+      new BookSelectionModal(this.app, books, words, this.settings, resolve).open();
     });
   }
 
@@ -227,6 +238,26 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
         };
       })
       .filter((b) => b.highlights.length > 0);
+
+    // Apply importHighlights / importAnnotations toggles
+    if (!this.settings.importHighlights || !this.settings.importAnnotations) {
+      result = result
+        .map((b) => {
+          const filtered = b.highlights.filter((h) => {
+            const hasAnnotation = !!h.annotation;
+            return hasAnnotation
+              ? this.settings.importAnnotations
+              : this.settings.importHighlights;
+          });
+          return {
+            ...b,
+            highlights: filtered,
+            highlightCount: filtered.length,
+            annotationCount: filtered.filter((h) => !!h.annotation).length,
+          };
+        })
+        .filter((b) => b.highlights.length > 0);
+    }
 
     if (this.settings.highlightSortOrder === "position") {
       for (const b of result) {
@@ -278,6 +309,50 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
     }
 
     return { created, updated };
+  }
+
+  private async writeWordListNote(words: KoboWord[]): Promise<number> {
+    await this.ensureFolder(this.settings.outputFolder);
+    const title = (this.settings.myWordsNoteTitle || "My Words (Kobo)")
+      .replace(/[/:*?"<>|\\]/g, " ").trim();
+    const filepath = normalizePath(`${this.settings.outputFolder}/${title}.md`);
+    const existing = this.getFileCaseInsensitive(filepath);
+
+    if (existing) {
+      if (this.settings.allowOverwrite) {
+        await this.app.vault.modify(existing, renderWordListNote(words, this.settings));
+        return words.length;
+      }
+      const content = await this.app.vault.read(existing);
+      // date_imported is a mandatory frontmatter field when importMyWords is on.
+      // It stores the max DateCreated of the last imported batch in Kobo-clock time,
+      // so comparisons stay in Kobo-clock domain and a consistently offset clock cancels out.
+      const dateImportedMatch = content.match(/^date_imported:\s*(.+)$/m);
+      if (!dateImportedMatch) {
+        new Notice(
+          "My Words: date_imported missing from note frontmatter. Delete the note or add date_imported: to resume appending.",
+          8000
+        );
+        return 0;
+      }
+      const lastImported = dateImportedMatch[1].trim();
+
+      const newWords = words.filter((w) => w.dateCreated > lastImported);
+      if (newWords.length === 0) return 0;
+
+      // Update date_imported to the max DateCreated of the new batch, then write
+      // the updated frontmatter + appended words in a single modify call.
+      const newMaxDate = newWords.reduce((m, w) => w.dateCreated > m ? w.dateCreated : m, "");
+      const updatedContent = content.replace(
+        /^date_imported: .+$/m,
+        `date_imported: ${newMaxDate}`
+      );
+      await this.app.vault.modify(existing, updatedContent + renderWordListAppend(newWords, this.settings));
+      return newWords.length;
+    }
+
+    await this.app.vault.create(filepath, renderWordListNote(words, this.settings));
+    return words.length;
   }
 
   private getFileCaseInsensitive(filepath: string): TFile | null {
@@ -351,15 +426,19 @@ class OverwriteConfirmModal extends Modal {
 
 class BookSelectionModal extends Modal {
   private checked: Set<number>;
+  private myWordsChecked: boolean;
   private resolved = false;
 
   constructor(
     app: App,
     private books: KoboBook[],
-    private resolve: (result: KoboBook[] | null) => void,
+    private words: KoboWord[],
+    private settings: KoboImporterSettings,
+    private resolve: (result: { books: KoboBook[]; words: KoboWord[]; importMyWords: boolean } | null) => void,
   ) {
     super(app);
     this.checked = new Set(books.map((_, i) => i));
+    this.myWordsChecked = settings.importMyWords && words.length > 0;
   }
 
   onOpen() {
@@ -389,6 +468,18 @@ class BookSelectionModal extends Modal {
       attr: { style: "max-height:400px;overflow-y:auto;border:1px solid var(--background-modifier-border);border-radius:4px;padding:8px;margin-bottom:16px" },
     });
     const checkboxes: HTMLInputElement[] = [];
+
+    // My Words row at top (if enabled and words exist)
+    if (this.settings.importMyWords && this.words.length > 0) {
+      const mwRow = list.createDiv({ attr: { style: "display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--background-modifier-border);margin-bottom:4px" } });
+      const mwCb = mwRow.createEl("input", { type: "checkbox" }) as HTMLInputElement;
+      mwCb.checked = this.myWordsChecked;
+      mwCb.onchange = () => { this.myWordsChecked = mwCb.checked; };
+      const mwLabel = mwRow.createEl("label");
+      mwLabel.setText(`${this.settings.myWordsNoteTitle || "My Words (Kobo)"} (${this.words.length} word${this.words.length !== 1 ? "s" : ""})`);
+      mwLabel.style.cursor = "pointer";
+      mwLabel.onclick = () => { mwCb.checked = !mwCb.checked; mwCb.onchange?.(new Event("change")); };
+    }
 
     this.books.forEach((book, i) => {
       const row = list.createDiv({ attr: { style: "display:flex;align-items:center;gap:8px;padding:4px 0" } });
@@ -423,7 +514,7 @@ class BookSelectionModal extends Modal {
       const selected = this.books.filter((_, i) => this.checked.has(i));
       this.resolved = true;
       this.close();
-      this.resolve(selected);
+      this.resolve({ books: selected, words: this.words, importMyWords: this.myWordsChecked });
     };
   }
 

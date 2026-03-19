@@ -56,6 +56,37 @@ export class KoboSettingsTab extends PluginSettingTab {
     containerEl.empty();
     containerEl.createEl("h2", { text: "Kobo Highlights 2 Obsidian" });
 
+    // -- General import toggles ------------------------------------------------
+    new SettingGroup(containerEl)
+      .setHeading("General")
+      .addSetting((s) => s
+        .setName("Import highlights")
+        .setDesc("Include plain highlights (without notes) when importing.")
+        .addToggle((t) => t
+          .setValue(this.plugin.settings.importHighlights)
+          .onChange(async (v) => {
+            this.plugin.settings.importHighlights = v;
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => s
+        .setName("Import annotations")
+        .setDesc("Include highlights that have a note written on the device.")
+        .addToggle((t) => t
+          .setValue(this.plugin.settings.importAnnotations)
+          .onChange(async (v) => {
+            this.plugin.settings.importAnnotations = v;
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => s
+        .setName("Import My Words")
+        .setDesc("Import words from Kobo's My Words vocabulary list into a single running note.")
+        .addToggle((t) => t
+          .setValue(this.plugin.settings.importMyWords)
+          .onChange(async (v) => {
+            this.plugin.settings.importMyWords = v;
+            await this.plugin.saveSettings();
+          })));
+
     // -- Folder location -------------------------------------------------------
     new SettingGroup(containerEl)
       .addSetting((s) => s
@@ -445,6 +476,45 @@ export class KoboSettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.appendHeadingOmitEmptyLines)
           .onChange(async (v) => {
             this.plugin.settings.appendHeadingOmitEmptyLines = v;
+            await this.plugin.saveSettings();
+          })));
+
+    // -- My Words --------------------------------------------------------------
+    const VARS_MY_WORDS = ["{{word}}", "{{title}}", "{{author}}", "{{language}}", "{{date_added}}"];
+    new SettingGroup(containerEl)
+      .setHeading("My Words")
+      .addSetting((s) => s
+        .setName("My Words note title")
+        .setDesc("Name of the vocabulary note created in your output folder.")
+        .addText((t) => t
+          .setPlaceholder("My Words (Kobo)")
+          .setValue(this.plugin.settings.myWordsNoteTitle)
+          .onChange(async (v) => {
+            this.plugin.settings.myWordsNoteTitle = v.trim() || "My Words (Kobo)";
+            await this.plugin.saveSettings();
+          })))
+      .addSetting((s) => varRefRow(s, VARS_MY_WORDS))
+      .addSetting((s) => {
+        s.setName("Word template")
+          .setDesc("Template for each word entry. Variables: {{word}}, {{title}}, {{author}}, {{language}}, {{date_added}}");
+        templateTextarea(s, {
+          knownVars: VARS_MY_WORDS,
+          getValue: () => this.plugin.settings.myWordsTemplate,
+          setValue: async (v) => {
+            this.plugin.settings.myWordsTemplate = v;
+            await this.plugin.saveSettings();
+          },
+          defaultValue: DEFAULT_SETTINGS.myWordsTemplate,
+          rows: 4,
+        });
+      })
+      .addSetting((s) => s
+        .setName("Omit lines with fully empty variables")
+        .setDesc("If every variable on a line resolves to empty, that line is dropped.")
+        .addToggle((t) => t
+          .setValue(this.plugin.settings.myWordsOmitEmptyLines)
+          .onChange(async (v) => {
+            this.plugin.settings.myWordsOmitEmptyLines = v;
             await this.plugin.saveSettings();
           })));
 

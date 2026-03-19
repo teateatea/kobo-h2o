@@ -1,4 +1,4 @@
-import { KoboBook, KoboHighlight } from "./types";
+import { KoboBook, KoboHighlight, KoboWord } from "./types";
 import { sanitizeFilename } from "./utils";
 
 // Node.js built-ins — desktop only (isDesktopOnly: true in manifest.json)
@@ -7,17 +7,24 @@ const path = require("path") as typeof import("path");
 
 // -- Public API ----------------------------------------------------------------
 
+export interface ParseResult {
+  books: KoboBook[];
+  words: KoboWord[];
+}
+
 export async function parseSqliteFile(
   buffer: ArrayBuffer,
   pluginDir: string
-): Promise<KoboBook[]> {
+): Promise<ParseResult> {
   const SQL = await loadSqlJs(pluginDir);
   const db = new SQL.Database(new Uint8Array(buffer));
 
   try {
     const bookMap = queryBooks(db);
     attachShelves(db, bookMap);
-    return Array.from(bookMap.values()).filter((b) => b.highlights.length > 0);
+    const books = Array.from(bookMap.values()).filter((b) => b.highlights.length > 0);
+    const words = queryWordList(db);
+    return { books, words };
   } finally {
     db.close();
   }
@@ -134,6 +141,39 @@ function attachShelves(db: any, bookMap: Map<string, KoboBook>) {
     }
   } catch {
     // Shelves unavailable on older firmware - silently skip
+  }
+}
+
+function queryWordList(db: any): KoboWord[] {
+  try {
+    const results = db.exec(`
+      SELECT w.Text, w.DictSuffix, w.DateCreated,
+             c.Title       AS BookTitle,
+             c.Attribution AS Author
+      FROM WordList w
+      LEFT JOIN content c ON c.ContentID = w.VolumeId AND c.ContentType = '6'
+      ORDER BY w.DateCreated
+    `);
+    if (!results || results.length === 0) return [];
+
+    const { columns, values } = results[0];
+    const col = (name: string) => columns.indexOf(name);
+
+    return values
+      .map((row): KoboWord => {
+        const get = (name: string) => (row[col(name)] as string | null) ?? undefined;
+        const suffix = get("DictSuffix");
+        return {
+          text: (get("Text") ?? "").trim(),
+          bookTitle: get("BookTitle"),
+          bookAuthor: get("Author"),
+          language: suffix ? suffix.replace(/^-/, "") : undefined,
+          dateCreated: get("DateCreated") ?? "",
+        };
+      })
+      .filter((w) => w.text.length > 0);
+  } catch {
+    return []; // WordList absent on older firmware - silently skip
   }
 }
 
