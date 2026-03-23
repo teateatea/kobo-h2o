@@ -1,49 +1,92 @@
 # Kobo-Highlights-2-Obsidian
 
-Import highlights from your Kobo e-reader directly into Obsidian. One note per book, with metadata and configurable formatting.
+Import your highlights and annotations from your Kobo e-reader directly into Obsidian, with configurable formatting.
+
+This plugin was orginially just meant for my personal usage, because I couldn't find a tool that matched my workflow quite right. But it's possible that my work habits are similar to your work habits, so I'm sharing it with the Obsidian community here.
 
 ---
 
-## Features
+## Summary
 
-- **Import methods**: Direct from USB device, SQLite file, text file, or CSV file.
-- **Configurable import format**: customize your import template
-- **One note per book** — title, author, series, percent read, tags, and more in YAML frontmatter
-- **Color callouts** — map Kobo highlight colors (yellow/red/blue/green) to Obsidian callout types
-- **Fully offline** — SQLite parsing uses a bundled WASM binary; no internet required
+- **Import methods:** Direct from USB device, or use .SQLite, .txt, or .csv file.
+- **Configurable format:** Create custom import templates based on all data Kobo provides (title, author, series, date_highlighted, etc).
+- **Fully offline:** — Local software only! No data leaves your machine, no internet needed to use.
 
 ---
 
 ## Installation
+### Requirements
+- Node.js
+- [REVISIT: Confirm nothing else, the sqlite wasm is included right?]
 
 ### From Community Plugins (recommended)
 
 1. Open **Settings → Community plugins → Browse**
-2. Search for **Kobo-Highlights-2-Obsidian**
+2. Search for **Kobo-H2O**
 3. Click **Install**, then **Enable**
 
-### Manual Installation
+### Build from Source *("I work with git regularly.")*
+Instructions for people comfortable with development.
 
-1. Download the latest release from GitHub Releases
-2. Extract `main.js`, `manifest.json`, and `sql-wasm.wasm` into your vault's plugin folder:
-   ```
-   <vault>/.obsidian/plugins/kobo-highlights-2-obsidian/
-   ```
-3. Open **Settings → Community plugins** and enable the plugin
-
-### Build from Source
+1. Clone repo
 
 ```bash
 git clone https://github.com/teateatea/kobo-h2o
 cd kobo-h2o
-npm install
 ```
 
-Edit `deploy.mjs` to set your vault path, then:
+2. Edit `deploy.mjs` to set your vault path, then:
 
 ```bash
+npm install
 npm run deploy
 ```
+
+3. Open **Settings → Community plugins** and enable the plugin.
+
+
+---
+
+### Manual Installation *("I grew up with computers.")*
+Instructions for people immersed in technology.
+
+1. Download the latest release from GitHub.
+2. Extract `main.js`, `manifest.json`, and `sql-wasm.wasm` into your vault's plugin folder:
+   ```
+   <vault>/.obsidian/plugins/kobo-highlights-2-obsidian/
+   ```
+3. Open **Settings → Community plugins** and enable the plugin.
+
+---
+
+#### Manual Installation *("Help me with the tech please.")*
+Instructions for people who *love* books, but only *like* computers.
+
+###### 1. Download from github
+On this github page (https://github.com/teateatea/kobo-h2o), there's a highlighted button that says "< > Code" near the top right. Click it, then choose "Download Zip" at the bottom.
+
+###### 2. Extract from zip file
+Once downloaded, open that zip file (kobo-h2o-main.zip, in your downloads folder), then "Extract all". There's the plugin files!
+
+###### 3. Run the SETUP
+In the extracted folder (kobo-h2o-main, not .zip!), you'll find "SETUP.bat". Please run it!
+
+Your computer should warn you that I'm a stranger, and it's up to you to decide if you actually trust strangers on the internet. If you do, it'll open a terminal where some colourful code zooms by to set up the plugin for you.
+
+If all goes well, it's going to stop to ask where your Obsidian vault folder is, which should be something like:
+
+`C:\Users\YOUR-NAME\Documents\YOUR-OBSIDIAN-VAULT`
+
+Type or paste that in, then press enter to continue setting up.
+
+###### 4. On Obsidian, toggle the plugin in
+Open Obsidian, then go to Settings > Community Plugins.
+
+(It may ask you to specifically enable Community Plugins here, again, because we're internet strangers.)
+
+Scroll down to "Kobo H2O" and toggle it on!
+
+The plugin is now ready to go!
 
 ---
 
@@ -51,15 +94,19 @@ npm run deploy
 
 ### Importing highlights
 
-Open the command palette (`Cmd/Ctrl+P`) and run one of:
+Open the command palette (`Cmd/Ctrl+R`) and run one of: [REVISIT confirm default shortcuts]
 
 | Command | When to use |
 |---------|-------------|
-| **Import from Kobo device** | Connect via USB — the plugin scans drive letters and `/Volumes` automatically |
-| **Import from SQLite file** | Manually locate `KoboReader.sqlite` (inside the `.kobo` folder on your device) |
-| **Import from text/CSV export** | Use a highlights file exported from your Kobo or a third-party tool |
+| **Import from Kobo device** | Connect via USB |
+| **Import from file** | Manually locate `KoboReader.sqlite` (inside the `.kobo` folder on your device) |
+| **Import from file** | Use a highlights file exported from your Kobo or a third-party tool |
 
-You can also click the **book icon** in the left ribbon to choose an import method.
+[REVISIT best way to present this info, especially regarding the various first and third party tools.]
+
+---
+
+## Settings
 
 ### Reimporting
 
@@ -68,6 +115,7 @@ By default the plugin is **append-only**: new highlights are added under a `## N
 ---
 
 ## Output Format
+[revisit with screenshots]
 
 Each book gets its own note. Example with default settings:
 
@@ -109,9 +157,8 @@ chapter 08 · 2025-01-11
 
 ---
 
-## Settings
-
 ### Output
+[revisit, consider wiki for details instead]
 
 | Setting | Default | Description |
 |---------|---------|-------------|
@@ -180,25 +227,34 @@ When using **Import from text/CSV**, column names are auto-detected (case-insens
 
 ## Troubleshooting
 
-**Titles, authors, or series look wrong**
-- Kobo stores metadata exactly as it was loaded onto the device — this plugin does not correct it
-- To clean up metadata before importing, try https://calibre-ebook.com
+###### Titles, authors, or series are wrong or look weird!
+- This pluin collects the metadata exactly the way it's been stored on your device. There are some basic settings to process common formats during import, but no changes are made to the files on your device. See wiki for details.
+- The best thing to do is cleaning up your sources: Try https://calibre-ebook.com, it's a popular ebook manager that can help tidy up the metadata.
 
-**"No highlights found"**
-- Make sure you selected `KoboReader.sqlite`, not another file
-- The `.kobo` folder may be hidden — enable hidden files in your file explorer
+###### I can't find my .sqlite file!
+- The `.kobo` folder may be hidden. In your file explorer,  enable "Show hidden files".
 
-**Device not detected automatically**
-- Confirm that your device is connected. Some cables don't support data (only charging).
-- Use **Import from SQLite file** to locate the file manually
+
+###### "No highlights found"
+- Make sure you selected `KoboReader.sqlite`, not another file (for example, NOT `book.sqlite` [revisit, what's that other sqlite file in there by default?]).
+- Make sure you actually have highlights in your books!
+
+###### Device not being detected by USB?
+- Confirm that your device is physically connected, on both sides of your USB cable.
+- Try a different cable: Some older cables are only for charging, and don't actually support data transfer.
+- On Windows, check `insert drive location`
 - On Mac, the Kobo mounts under `/Volumes`
 - On Linux, check `/media/<username>/KOBOeReader/.kobo/KoboReader.sqlite`
+- Consider using **Import from file**, with another way to locate the file manually. [revisit, specific instructions for the various third party work flows.]
+
 
 ---
 
 ## Privacy
 
-All processing is entirely local. No data is sent anywhere. The SQLite WASM binary is bundled in the plugin — no internet connection is needed, after installation.
+All processing is local, no data is sent anywhere (other than from your Kobo to your computer). The SQLite WASM binary is bundled in the plugin — no internet connection is needed, after installation.
+
+Claude Code was used during plugin development, but the plugin you install uses only basic processing to work. No AI functionality is included.
 
 ---
 
