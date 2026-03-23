@@ -6,5 +6,5 @@
  * don't silently create duplicate book entries.
  */
 export function sanitizeFilename(s: string): string {
-  return s.replace(/[\\/:*?"<>|]/g, "-").replace(/\r?\n/g, " ").trim();
+  return s.replace(/[\\/:*?"<>|\[\]#^]/g, "-").replace(/\r?\n/g, " ").trim();
 }

@@ -9,7 +9,7 @@ export function renderFilename(book: KoboBook, settings: KoboImporterSettings): 
   const raw = applyVars(settings.noteTitleTemplate, bookVars(book, importDate, importDate, settings, false));
   const replacement = settings.noteTitleInvalidCharReplacement;
   return raw
-    .replace(/[/:*?"<>|\\]/g, replacement)
+    .replace(/[/:*?"<>|\\[\]#^]/g, replacement)
     .replace(/ {2,}/g, " ")
     .replace(/^\.+|\.+$/g, "")
     .trim() || "Untitled";
