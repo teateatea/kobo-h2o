@@ -2,7 +2,7 @@
  * deploy.mjs
  *
  * Copies the built plugin files into your Obsidian vault's plugin folder.
- * Edit VAULT_PATH below, then run: npm run deploy
+ * Run: npm run deploy (vault path read from .vault-path or KOBO_VAULT env var)
  *
  * Usage:
  *   node deploy.mjs
@@ -11,15 +11,19 @@
 
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
-// -----------------------------------------------
-// Option A (manual): paste your vault path here, then run: npm run deploy
-//   Windows:   C:\\Users\\YourName\\Documents\\MyVault
-//   Mac/Linux: /Users/YourName/Documents/MyVault
-// Option B (automated): run setup.bat — it sets KOBO_VAULT for you.
-// -----------------------------------------------
-const VAULT_PATH = process.env.KOBO_VAULT ?? "";
-// -----------------------------------------------
+// Vault path resolution (highest priority first):
+//   1. KOBO_VAULT environment variable
+//   2. .vault-path file in project root (one line, gitignored)
+//   3. Error with setup instructions
+function resolveVaultPath() {
+  if (process.env.KOBO_VAULT) return process.env.KOBO_VAULT;
+  const configFile = path.join(path.dirname(fileURLToPath(import.meta.url)), ".vault-path");
+  if (fs.existsSync(configFile)) return fs.readFileSync(configFile, "utf-8").trim();
+  return "";
+}
+const VAULT_PATH = resolveVaultPath();
 
 const PLUGIN_ID = "kobo-highlights-2-obsidian";
 const FILES_TO_COPY = ["main.js", "manifest.json", "sql-wasm.wasm"];
@@ -30,8 +34,8 @@ function main() {
       "",
       "ERROR: No vault path set.",
       "",
-      "Option A — run setup.bat (Windows) and it will ask for your vault path.",
-      "Option B — open deploy.mjs and set VAULT_PATH at the top of the file.",
+      "Option A: set the KOBO_VAULT environment variable to your vault path.",
+      "Option B: create a .vault-path file in the project root containing your vault path (one line).",
       "",
       "Examples:",
       "  Windows:   C:\\\\Users\\\\YourName\\\\Documents\\\\MyVault",
