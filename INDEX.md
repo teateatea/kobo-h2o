@@ -1,9 +1,10 @@
 <!-- indexed: 2026-03-23 03:19 -->
 # Project Index
 
-.claude/TASKS.md - cross-session backlog of all plugin tasks, numbered and sectioned by area
+.claude/ - local-only config and planning directory (gitignored; not in project root but lives alongside it)
+.claude/TASKS.md - cross-session backlog of all plugin tasks, numbered and sectioned by area; gitignored and local-only
 .claude/settings.local.json - Claude Code local permissions for this project
-.claude/plans/ - plan files for all features (DISCUSSION, APPROVED, PREFECT-APPROVED, VERIFIED prefixes)
+.claude/plans/ - plan files for all features (DISCUSSION, APPROVED, PREFECT-APPROVED, VERIFIED prefixes); gitignored and local-only
 .gitignore - excludes node_modules, dist, .claude/, and test SQLite files from git
 KoboReader.sqlite - test/sample Kobo database (gitignored, local only)
 KoboReader260319.sqlite - additional test Kobo database (gitignored, local only)
