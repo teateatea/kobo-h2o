@@ -63,6 +63,7 @@ echo  Step 3/3 ^| Building and deploying...
 echo.
 
 set KOBO_VAULT=%VAULT_INPUT%
+echo %VAULT_INPUT%> .vault-path
 call npm run deploy
 if errorlevel 1 (
     echo.

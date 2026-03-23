@@ -10,3 +10,6 @@ Thumbs.db
 # Test data — keep private
 KoboReader.sqlite
 *.sqlite
+
+# Local vault path for deploy.mjs (user-specific, never committed)
+.vault-path
