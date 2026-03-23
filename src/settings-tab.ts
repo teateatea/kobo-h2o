@@ -1063,7 +1063,7 @@ function templateTextarea(
  */
 function invalidCharSetting(s: Setting, plugin: KoboPlugin): void {
   s.setName("Replace invalid characters with")
-    .setDesc("Characters not allowed in filenames: : / \\ * ? \" < > |");
+    .setDesc("Characters not allowed in filenames: : / \\ * ? \" < > | [ ] # ^");
 
   const input = s.controlEl.createEl("input", { type: "text" } as any);
   input.value = plugin.settings.noteTitleInvalidCharReplacement;
