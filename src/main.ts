@@ -494,8 +494,15 @@ class BookSelectionModal extends Modal {
       const label = row.createEl("label");
       const title = book.title;
       const author = book.author ? ` - ${book.author}` : "";
-      const count = ` (${book.highlightCount} highlight${book.highlightCount !== 1 ? "s" : ""})`;
-      label.setText(`${title}${author}${count}`);
+      const countText = `${book.highlightCount} highlight${book.highlightCount !== 1 ? "s" : ""}`;
+
+      const titleSpan = label.createEl("span", { text: `${title}${author}` });
+      titleSpan.style.fontSize = "1.05em";
+
+      const countSpan = label.createEl("span", { text: countText });
+      countSpan.style.display = "block";
+      countSpan.style.color = "var(--text-muted)";
+      countSpan.style.fontSize = "0.85em";
       label.style.cursor = "pointer";
       label.onclick = () => { cb.checked = !cb.checked; cb.onchange?.(new Event("change")); };
     });
