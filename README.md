@@ -8,9 +8,9 @@ This plugin was orginially just meant for my personal usage, because I couldn't 
 
 ## Summary
 
-- **Import methods:** Direct from USB device, or use .SQLite, .txt, or .csv file.
-- **Configurable format:** Create custom import templates based on all data Kobo provides (title, author, series, date_highlighted, etc).
-- **Fully offline:** — Local software only! No data leaves your machine, no internet needed to use.
+- **Import methods:** Direct from USB device, or from .SQLite, .txt, or .csv files.
+- **Configurable format:** Create custom import templates based on all available data (title, author, date_highlighted, etc).
+- **Fully offline:** Local software only! No data leaves your machine, no internet needed to use.
 
 ---
 
@@ -227,34 +227,35 @@ When using **Import from text/CSV**, column names are auto-detected (case-insens
 
 ## Troubleshooting
 
-###### Titles, authors, or series are wrong or look weird!
+### Titles, authors, or series are wrong or look weird!
 - This pluin collects the metadata exactly the way it's been stored on your device. There are some basic settings to process common formats during import, but no changes are made to the files on your device. See wiki for details.
 - The best thing to do is cleaning up your sources: Try https://calibre-ebook.com, it's a popular ebook manager that can help tidy up the metadata.
 
-###### I can't find my .sqlite file!
+### I can't find my .sqlite file!
 - The `.kobo` folder may be hidden. In your file explorer,  enable "Show hidden files".
 
 
-###### "No highlights found"
+### "No highlights found"
 - Make sure you selected `KoboReader.sqlite`, not another file (for example, NOT `book.sqlite` [revisit, what's that other sqlite file in there by default?]).
 - Make sure you actually have highlights in your books!
 
-###### Device not being detected by USB?
-- Confirm that your device is physically connected, on both sides of your USB cable.
+### Device not being detected by USB?
+- Confirm that your device is physically connected, on both ends of your USB cable.
 - Try a different cable: Some older cables are only for charging, and don't actually support data transfer.
 - On Windows, check `insert drive location`
 - On Mac, the Kobo mounts under `/Volumes`
 - On Linux, check `/media/<username>/KOBOeReader/.kobo/KoboReader.sqlite`
-- Consider using **Import from file**, with another way to locate the file manually. [revisit, specific instructions for the various third party work flows.]
+- This will happen if your Device doesn't have a .kobo folder, or if your .sqlite file is not specifically named `KoboReader.sqlite` [revisit, confirm that's true]. Consider using **Import from file** to directly point out the correct file.
+- Consider using **Import from file** with another way to locate the file manually. [revisit, specific instructions for the various third party work flows.]
 
 
 ---
 
 ## Privacy
 
-All processing is local, no data is sent anywhere (other than from your Kobo to your computer). The SQLite WASM binary is bundled in the plugin — no internet connection is needed, after installation.
+All processing is local: Data is moved from your Kobo to your computer, and no data ever leaves your computer. No internet connection is needed (after installation).
 
-Claude Code was used during plugin development, but the plugin you install uses only basic processing to work. No AI functionality is included.
+Claude Code was used during development, but the plugin uses only basic processing to work. No AI functionality is included.
 
 ---
 
