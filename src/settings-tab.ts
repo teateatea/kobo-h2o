@@ -346,13 +346,15 @@ export class KoboSettingsTab extends PluginSettingTab {
            .setValue(this.plugin.settings.dateFormat)
            .onChange(async (v) => {
              this.plugin.settings.dateFormat = v || "YYYY-MM-DD";
-             previewEl.textContent = `Preview: ${moment().format(this.plugin.settings.dateFormat)}`;
+             previewEl.textContent = moment().format(this.plugin.settings.dateFormat);
              await this.plugin.saveSettings();
            }));
         const fmt = this.plugin.settings.dateFormat || "YYYY-MM-DD";
-        const previewEl = s.controlEl.createEl("div", {
-          text: `Preview: ${moment().format(fmt)}`,
+        const previewEl = s.settingEl.createEl("div", {
+          text: moment().format(fmt),
         });
+        previewEl.style.display = "block";
+        previewEl.style.width = "100%";
         previewEl.style.color = "var(--text-muted)";
         previewEl.style.fontSize = "var(--font-smaller)";
         previewEl.style.marginTop = "4px";
