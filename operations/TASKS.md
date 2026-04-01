@@ -6,7 +6,7 @@ Persistent cross-session task list. Update status inline: `[ ]` pending, `[x]` d
 
 ## Author / Metadata Formatting
 
-- [ ] **#92** Date format preview renders to right of input, not below
+- [x] **#92** Date format preview renders to right of input, not below
   [D:15 C:55] The preview text appears to the right of the input field instead of on its own line below it; fix layout so both elements stack vertically, and remove the "Preview:" label prefix.
   Original: Date format preview layout fix: preview renders to the RIGHT of the input instead of below it. Fix layout so text box and preview each occupy their own line, both anchored right. Also remove the "Preview:" prefix label -- show just the formatted date string.
   Context: pre-existing task
@@ -78,7 +78,7 @@ Persistent cross-session task list. Update status inline: `[ ]` pending, `[x]` d
   Original: Collapse extra blank lines -- new Post-Processing settings section, strip consecutive blank lines
   Context: pre-existing task
 
-- [ ] **#116** Define behavior for trailing blank lines at end of template
+- [ ] **#116** Define behavior for trailing blank lines at end of template *(implemented)*
   [D:20 C:45] Decide and implement a policy for templates that end with trailing blank lines: should those blank lines appear in the output, or be culled?
   Original: Templates that end in trailing blank lines -- should those blank lines be culled from the output, or preserved as the user wrote them?
   Context: pre-existing task
@@ -101,7 +101,7 @@ Persistent cross-session task list. Update status inline: `[ ]` pending, `[x]` d
 
 ## UI / Polish
 
-- [ ] **#1** Fix collections item wrapper layout *(implemented)*
+- [x] **#1** Fix collections item wrapper layout *(implemented)*
   [D:15 C:55] The textbox for the collections item wrapper renders under the description instead of anchored to the right; fix the layout to align it correctly.
   Original: Fix collections item wrapper layout -- textbox renders under description instead of anchored right *(aesthetic)*
   Context: pre-existing task
@@ -121,7 +121,7 @@ Persistent cross-session task list. Update status inline: `[ ]` pending, `[x]` d
   Original: File location search/autocomplete in settings
   Context: pre-existing task
 
-- [ ] **#84** Improve book row layout in book selection modal
+- [x] **#84** Improve book row layout in book selection modal
   [D:25 C:55] Restyle the book selection modal rows so title + author appear in a slightly larger font and highlight count appears on a new line in gray text.
   Original: Book selection modal: improve book row layout -- title + author in slightly larger font, highlight count on a new line in gray text
   Context: pre-existing task
@@ -211,7 +211,7 @@ Persistent cross-session task list. Update status inline: `[ ]` pending, `[x]` d
   Original: Restyle setup.bat with colours and rename to SETUP.bat -- header bar "Kobo Highlights-2-Obsidian | Setup": all green; step headings: green; ERROR: messages: orange; user instructions (e.g. "Download and install Node.js", "Enter the full path to your Obsidian vault"): yellow; "Done!" bar: rename to "Success!" and make all green; next steps section: yellow
   Context: pre-existing task
 
-- [ ] **#125** Improve "No highlights found" error with specific sub-cases
+- [x] **#125** Improve "No highlights found" error with specific sub-cases
   [D:25 C:55] Show context-specific messages: if the SQLite file is not named KoboReader.sqlite, show the actual filename and prompt to select the correct file; if it is correctly named but has zero highlights, say so explicitly.
   Original: Improve "No highlights found" error with specific sub-cases -- (a) if .sqlite file is not named exactly "KoboReader.sqlite": show "File selected: [name]" and "Please select your KoboReader.sqlite file."; (b) if file IS named "KoboReader.sqlite" but has zero highlights: show "There are 0 books with highlights here!"
   Context: pre-existing task
