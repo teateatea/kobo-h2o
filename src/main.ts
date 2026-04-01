@@ -91,7 +91,7 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
         const { books, words } = await parseSqliteFile(buffer, this.pluginDir());
         const result = await this.selectBooks(books, words);
         if (result === null) return;
-        await this.finishImport(result.books, result.words, result.importMyWords);
+        await this.finishImport(result.books, result.words, result.importMyWords, file.name);
       } catch (err) {
         console.error("[KoboH2O]", err);
         new Notice(`Import failed: ${err.message}`, 8000);
@@ -184,7 +184,7 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
       const result = await this.selectBooks(books, words);
       if (result === null) return;
       new Notice("Importing...");
-      await this.finishImport(result.books, result.words, result.importMyWords);
+      await this.finishImport(result.books, result.words, result.importMyWords, "KoboReader.sqlite");
     } catch (err) {
       console.error("[KoboH2O]", err);
       new Notice(`Import failed: ${err.message}`, 8000);
@@ -193,11 +193,16 @@ this.settings = Object.assign({}, DEFAULT_SETTINGS, saved);
 
   // -- Core import logic -----------------------------------------------------
 
-  private async finishImport(books: KoboBook[], words: KoboWord[], importMyWords: boolean) {
+  private async finishImport(books: KoboBook[], words: KoboWord[], importMyWords: boolean, sourceFileName?: string) {
     books = this.applyFilters(books);
 
     if (books.length === 0 && !(importMyWords && words.length > 0)) {
-      new Notice("No highlights found.");
+      if (sourceFileName && sourceFileName !== "KoboReader.sqlite") {
+        new Notice(`File selected: ${sourceFileName}`, 8000);
+        new Notice("Please select your KoboReader.sqlite file.", 8000);
+      } else {
+        new Notice("There are 0 books with highlights here!");
+      }
       return;
     }
 
