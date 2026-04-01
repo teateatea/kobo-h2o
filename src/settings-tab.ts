@@ -631,11 +631,10 @@ export class KoboSettingsTab extends PluginSettingTab {
           input.value = this.plugin.settings.collectionsItemWrapper;
           input.style.width = "12em";
 
-          s.infoEl.style.flexShrink = "1";
-          s.controlEl.style.flexShrink = "0";
+          s.controlEl.style.flexDirection = "column";
+          s.controlEl.style.alignItems = "flex-end";
 
-          s.settingEl.style.flexWrap = "wrap";
-          const bottomRow = s.settingEl.createEl("div");
+          const bottomRow = s.controlEl.createEl("div");
           bottomRow.style.cssText =
             "width:100%; display:flex; justify-content:space-between; align-items:center; margin-top:6px;";
 
@@ -1069,8 +1068,10 @@ function invalidCharSetting(s: Setting, plugin: KoboPlugin): void {
   input.value = plugin.settings.noteTitleInvalidCharReplacement;
   input.style.width = "6em";
 
-  s.settingEl.style.flexWrap = "wrap";
-  const bottomRow = s.settingEl.createEl("div");
+  s.controlEl.style.flexDirection = "column";
+  s.controlEl.style.alignItems = "flex-end";
+
+  const bottomRow = s.controlEl.createEl("div");
   bottomRow.style.cssText =
     "width:100%; display:flex; justify-content:space-between; align-items:center; margin-top:6px;";
 
