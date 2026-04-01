@@ -72,7 +72,7 @@ function renderFrontmatter(book: KoboBook, settings: KoboImporterSettings, impor
     );
   }
 
-  return rendered + "\n";
+  return rendered.trimEnd() + "\n";
 }
 
 // -- Note heading --------------------------------------------------------------
@@ -91,7 +91,7 @@ function renderNoteHeading(book: KoboBook, settings: KoboImporterSettings, impor
     language: book.language ?? "",
   };
 
-  return applyVarsMultiline(tmpl, vars, settings.noteHeadingOmitEmptyLines);
+  return applyVarsMultiline(tmpl, vars, settings.noteHeadingOmitEmptyLines).trimEnd();
 }
 
 // -- Chapter title cleanup -----------------------------------------------------
@@ -188,7 +188,7 @@ export function renderHighlight(
     settings.highlightOmitEmptyLines
   );
 
-  return rendered + "\n\n---\n";
+  return rendered.trimEnd() + "\n\n---\n";
 }
 
 function renderAnnotation(
@@ -225,7 +225,7 @@ function renderFooter(book: KoboBook, settings: KoboImporterSettings, importDate
     language: book.language ?? "",
   };
 
-  return applyVarsMultiline(tmpl, vars, settings.footerOmitEmptyLines);
+  return applyVarsMultiline(tmpl, vars, settings.footerOmitEmptyLines).trimEnd();
 }
 
 // -- Append block --------------------------------------------------------------
@@ -249,7 +249,7 @@ export function renderAppendBlock(
   };
 
   const heading = settings.appendHeadingTemplate.trim()
-    ? applyVarsMultiline(settings.appendHeadingTemplate, headingVars, settings.appendHeadingOmitEmptyLines)
+    ? applyVarsMultiline(settings.appendHeadingTemplate, headingVars, settings.appendHeadingOmitEmptyLines).trimEnd()
     : "";
 
   const lines: string[] = [""];
